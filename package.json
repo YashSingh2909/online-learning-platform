@@ -1,0 +1,17 @@
+{
+  "name": "edusphere",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "npm run clean:backend && concurrently \"npm run backend\" \"npm run frontend\"",
+    "clean:backend": "npx kill-port 5000",
+    "backend": "cd backend && npm run dev",
+    "frontend": "cd frontend && npm run dev",
+    "start": "cd backend && npm start",
+    "build": "cd frontend && npm run build"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.1",
+    "kill-port": "^2.0.1"
+  }
+}
