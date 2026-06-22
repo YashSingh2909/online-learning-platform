@@ -80,8 +80,21 @@ export const getCourseById = async (req, res) => {
     }
 
     if (!isOwner) {
+      // For students: return only preview lessons when they are NOT enrolled.
+      // When enrolled, return the full lessons array.
+      const { default: Enrollment } = await import('../models/Enrollment.js');
+      const isEnrolled = req.user
+        ? await Enrollment.findOne({
+            student: req.user.id,
+            course: course._id,
+          })
+        : null;
+
       const data = course.toObject();
-      data.lessons = (data.lessons || []).filter((lesson) => lesson.isFreePreview || lesson.isFree);
+      if (!isEnrolled) {
+        data.lessons = (data.lessons || []).filter((lesson) => lesson.isFreePreview);
+      }
+
       return res.status(200).json({ success: true, data });
     }
 
