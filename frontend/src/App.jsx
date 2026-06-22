@@ -9,7 +9,10 @@ import Register from './pages/Register';
 import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
 import CourseDetail from './pages/CourseDetail';
+import CourseLearn from './pages/CourseLearn';
+import CourseDetailLearnRedirect from './pages/CourseDetailLearnRedirect';
 import Progress from './pages/Progress';
+
 import Quizzes from './pages/Quizzes';
 import Assignments from './pages/Assignments';
 import Notifications from './pages/Notifications';
@@ -130,6 +133,8 @@ function App() {
           <Route path="/courses" element={<Page><Courses /></Page>} />
           <Route path="/courses/:id" element={<ProtectedRoute><Page><CourseDetail /></Page></ProtectedRoute>} />
           <Route path="/course/:id" element={<CourseAlias />} />
+          <Route path="/course/:id/learn" element={<ProtectedRoute><Page><CourseLearn /></Page></ProtectedRoute>} />
+
 
           <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
           <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />

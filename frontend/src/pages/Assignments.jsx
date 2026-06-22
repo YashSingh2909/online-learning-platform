@@ -50,18 +50,14 @@ export default function Assignments() {
   };
 
   return (
-    <div className="dashboard-page">
-      <div className="dashboard-bg">
-        <div className="dashboard-orb dashboard-orb-1"></div>
-        <div className="dashboard-orb dashboard-orb-2"></div>
-      </div>
-
-      <div className="dashboard-container">
-        <div className="dashboard-header">
-          <p className="dashboard-label">Assignments</p>
-          <h1 className="dashboard-title">Submit Your Work</h1>
-          <p className="dashboard-desc">View assignments by course and submit when ready.</p>
+    <div className="bg-slate-950 text-slate-100 min-h-screen">
+      <div className="container mx-auto px-6 py-10">
+        <div className="mb-8">
+          <p className="text-sm uppercase tracking-[0.2em] text-cyan-200/70">Assignments</p>
+          <h1 className="text-3xl sm:text-4xl font-semibold mt-2">Submit Your Work</h1>
+          <p className="text-slate-300 mt-2">View assignments by course and submit when ready.</p>
         </div>
+
 
         {loading ? (
           <div className="dashboard-loading">

@@ -1,5 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React from 'react';
+import { useParams } from 'react-router-dom';
+
+import { Navigate } from 'react-router-dom';
+
 import { useAuth } from '../context/AuthContext';
 import { courseAPI, enrollmentAPI, paymentAPI } from '../api/apiService';
 import LockedContent from '../components/LockedContent';
@@ -14,21 +17,32 @@ export default function CourseDetail() {
   const [enrollment, setEnrollment] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedLesson, setSelectedLesson] = useState(0);
+
+  // Keep the lesson selection valid when course.lessons arrives.
+  useEffect(() => {
+    if (!course?.lessons?.length) return;
+    if (selectedLesson < 0 || selectedLesson >= course.lessons.length) {
+      setSelectedLesson(0);
+    }
+  }, [course, selectedLesson]);
   const [locked, setLocked] = useState(false);
   const [lockedMessage, setLockedMessage] = useState('');
 
+  const [markingComplete, setMarkingComplete] = useState(false);
+
   useEffect(() => {
+
     fetchCourseAndEnrollment();
   }, [id, user]);
 
 
   const fetchCourseAndEnrollment = async () => {
     try {
+      setLocked(false);
+      setLockedMessage('');
+
       const courseRes = await courseAPI.getCourseById(id);
       setCourse(courseRes.data.data);
-
-
-
 
       if (user) {
         try {
@@ -36,7 +50,10 @@ export default function CourseDetail() {
           setEnrollment(enrollRes.data.data);
         } catch (error) {
           // Not enrolled
+          setEnrollment(null);
         }
+      } else {
+        setEnrollment(null);
       }
     } catch (error) {
       const status = error?.status ?? error?.response?.status;
@@ -49,6 +66,7 @@ export default function CourseDetail() {
       setLoading(false);
     }
   };
+
 
 
   const handleEnroll = async () => {
@@ -90,8 +108,9 @@ export default function CourseDetail() {
   const isEnrolled = !!enrollment;
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100">
+    <div className="bg-slate-950 text-slate-100 min-h-screen">
       <div className="container mx-auto px-6 py-8">
+
         <button
           onClick={() => navigate(-1)}
           className="mb-8 inline-flex rounded-full border border-slate-700 bg-slate-900/80 px-5 py-3 text-sm text-slate-200 transition hover:border-cyan-500 hover:text-white"
@@ -133,6 +152,76 @@ export default function CourseDetail() {
               <div className="mt-10 rounded-[1.75rem] border border-slate-200/60 bg-slate-100 p-6 text-slate-950 shadow-sm">
                 <h3 className="text-2xl font-semibold">Course Content</h3>
                 <p className="mt-3 text-sm text-slate-600">Select a lesson to continue your learning.</p>
+
+                {(() => {
+                  const lessons = Array.isArray(course?.lessons) ? course.lessons : [];
+                  if (!lessons.length) {
+                    return (
+                      <div className="mt-6">
+                        <div className="rounded-[1.25rem] border border-slate-200/70 bg-white p-4">
+                          <p className="font-semibold">No preview lessons available</p>
+                          <p className="mt-1 text-sm text-slate-600">Ask your instructor to enable lesson preview.</p>
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  const safeSelectedIndex = Math.min(Math.max(selectedLesson, 0), lessons.length - 1);
+                  const selected = lessons[safeSelectedIndex];
+                  const canPlay = !!selected?.videoUrl;
+                  return (
+                    <div className="mt-6">
+                      <div className="rounded-[1.25rem] border border-slate-200/70 bg-white p-4">
+                        <p className="font-semibold">Now playing</p>
+                        <p className="mt-1 text-sm text-slate-600">{selected?.title || 'Select a lesson'}</p>
+
+                        <div className="mt-4">
+                          {canPlay ? (
+                            <video
+                              key={selectedLesson}
+                              src={selected.videoUrl}
+                              controls
+                              className="w-full rounded-[0.75rem]"
+                              onEnded={async () => {
+                                // Completion tracking: mark lesson complete when video ends.
+                                if (markingComplete) return;
+                                if (!selected?.title) return;
+
+                                try {
+                                  setMarkingComplete(true);
+                                  // Backend expects lessonId; lessons are embedded -> we treat index as lessonId.
+                                  await enrollmentAPI.completeLesson({ courseId: id, lessonId: selectedLesson });
+                                  const enrollRes = await enrollmentAPI.getEnrollmentByCourse(id);
+                                  setEnrollment(enrollRes.data.data);
+                                  // Re-fetch course to keep any derived UI consistent.
+                                  await fetchCourseAndEnrollment();
+                                } catch (e) {
+
+                                  // Keep UX non-blocking; completion failing should not break playback.
+                                  console.error(e);
+                                } finally {
+                                  setMarkingComplete(false);
+                                }
+                              }}
+                              onTimeUpdate={(e) => {
+                                // Soft completion: do not auto-mark here to avoid false progress.
+                              }}
+                            />
+                          ) : (
+                            <div className="rounded-[0.75rem] border border-slate-200 bg-slate-50 p-4">
+                              <p className="text-sm text-slate-600">Video not available for this lesson.</p>
+                            </div>
+                          )}
+                        </div>
+
+                        {markingComplete && (
+                          <p className="mt-3 text-sm text-slate-600">Updating completion…</p>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })()}
+
                 <div className="mt-6 space-y-3">
                   {course.lessons.map((lesson, index) => (
                     <button
@@ -147,6 +236,7 @@ export default function CourseDetail() {
                 </div>
               </div>
             )}
+
           </section>
 
           <aside className="space-y-6">

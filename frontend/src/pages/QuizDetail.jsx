@@ -182,67 +182,94 @@ export default function QuizDetail() {
   const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
 
   return (
-    <div className="dashboard-page">
-      <div className="dashboard-bg">
-        <div className="dashboard-orb dashboard-orb-1"></div>
-        <div className="dashboard-orb dashboard-orb-2"></div>
-      </div>
-
-      <div className="dashboard-container quiz-detail-container">
-        <button onClick={() => navigate('/quizzes')} className="btn-outline-alt" style={{ marginBottom: '1.5rem' }}>
+    <div className="bg-slate-950 text-slate-100 min-h-screen">
+      <div className="container mx-auto px-6 py-10 quiz-detail-container">
+        <button
+          onClick={() => navigate('/quizzes')}
+          className="inline-flex items-center px-4 py-2 rounded-xl border border-white/10 hover:border-cyan-400/40 bg-white/5 hover:bg-white/10 transition mb-6"
+        >
           ← Exit Quiz
         </button>
 
-        <div className="dashboard-header">
-          <p className="dashboard-label">{quiz.title}</p>
-          <h1 className="dashboard-title">Question {currentQ + 1} of {quiz.questions?.length}</h1>
+        <div className="mb-6">
+          <p className="text-sm uppercase tracking-[0.2em] text-cyan-200/70">{quiz.title}</p>
+          <h1 className="text-3xl font-semibold mt-2">Question {currentQ + 1} of {quiz.questions?.length}</h1>
         </div>
 
-        <div className="quiz-question">
-          <p className="quiz-question-num">
-            Question {currentQ + 1}
-          </p>
-          <p className="quiz-question-text">{question?.question}</p>
+        <div className="rounded-2xl bg-white/5 ring-1 ring-white/10 p-6 shadow-xl shadow-slate-950/10">
+          <p className="text-sm uppercase tracking-[0.15em] text-cyan-200/70">Question {currentQ + 1}</p>
+          <p className="text-xl font-medium mt-3">{question?.question}</p>
 
-          <div className="quiz-options">
-            {question?.options?.map((opt, idx) => (
-              <div
-                key={idx}
-                className={`quiz-option ${answers[question._id] === idx ? 'selected' : ''}`}
-                onClick={() => selectAnswer(question._id, idx)}
-              >
-                <div className="quiz-option-marker">{letters[idx]}</div>
-                <span className="quiz-option-text">{opt}</span>
-              </div>
-            ))}
+          <div className="mt-6 flex flex-col gap-3">
+            {question?.options?.map((opt, idx) => {
+              const qid = question._id;
+              const selectedIdx = answers[qid];
+              const isSelected = selectedIdx === idx;
+              return (
+                <button
+                  type="button"
+                  key={idx}
+                  onClick={() => selectAnswer(qid, idx)}
+                  className={`w-full text-left rounded-xl border p-4 transition ${
+                    isSelected
+                      ? 'border-cyan-400/60 bg-cyan-500/10'
+                      : 'border-white/10 bg-white/5 hover:border-cyan-400/30'
+                  }`}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className={`w-9 h-9 rounded-full flex items-center justify-center border font-semibold transition ${
+                      isSelected ? 'border-cyan-400/60 bg-cyan-500 text-slate-950' : 'border-white/10 bg-white/5'
+                    }`}>
+                      {letters[idx]}
+                    </div>
+                    <div className="text-slate-100">
+                      <div className="text-[15px] font-medium">{opt}</div>
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
           </div>
         </div>
 
-        <div className="quiz-nav">
-          <button onClick={prevQ} className="btn-outline-alt" disabled={currentQ === 0}>
+        <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <button
+            onClick={prevQ}
+            className="inline-flex items-center justify-center px-4 py-2 rounded-xl border border-white/10 hover:border-cyan-400/40 bg-white/5 hover:bg-white/10 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={currentQ === 0}
+          >
             ← Previous
           </button>
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
-            {quiz.questions?.map((_, idx) => (
-              <div
-                key={idx}
-                style={{
-                  width: 10,
-                  height: 10,
-                  borderRadius: '50%',
-                  background: idx === currentQ ? 'var(--accent)' : (answers[quiz.questions[idx]?._id] !== undefined ? 'var(--border-hover)' : 'var(--border)'),
-                  cursor: 'pointer',
-                }}
-                onClick={() => setCurrentQ(idx)}
-              />
-            ))}
+
+          <div className="flex items-center justify-center gap-2">
+            {quiz.questions?.map((_, idx) => {
+              const isActive = idx === currentQ;
+              const isAnswered = answers[quiz.questions[idx]?._id] !== undefined;
+              return (
+                <div
+                  key={idx}
+                  className={`w-2.5 h-2.5 rounded-full cursor-pointer transition ${
+                    isActive ? 'bg-cyan-400' : isAnswered ? 'bg-slate-300/60' : 'bg-slate-500/30'
+                  }`}
+                  onClick={() => setCurrentQ(idx)}
+                />
+              );
+            })}
           </div>
+
           {currentQ === quiz.questions?.length - 1 ? (
-            <button onClick={submitQuiz} className="btn-action" disabled={loading}>
+            <button
+              onClick={submitQuiz}
+              className="inline-flex items-center justify-center px-6 py-2.5 rounded-xl bg-cyan-500 text-slate-950 font-semibold hover:bg-cyan-400 transition disabled:opacity-60"
+              disabled={loading}
+            >
               {loading ? 'Submitting...' : 'Submit Quiz'}
             </button>
           ) : (
-            <button onClick={nextQ} className="btn-outline-alt">
+            <button
+              onClick={nextQ}
+              className="inline-flex items-center justify-center px-6 py-2.5 rounded-xl border border-white/10 hover:border-cyan-400/40 bg-white/5 hover:bg-white/10 transition"
+            >
               Next →
             </button>
           )}

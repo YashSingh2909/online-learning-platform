@@ -10,6 +10,7 @@ export default function Certificate() {
   const [enrollments, setEnrollments] = useState([]);
   const [generating, setGenerating] = useState(null);
 
+
   useEffect(() => {
     const load = async () => {
       if (!user) return;

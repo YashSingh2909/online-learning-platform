@@ -46,7 +46,12 @@ export default function Courses() {
       navigate('/login');
       return;
     }
-    navigate(`/course/${courseId}`);
+    if (user) {
+      navigate(`/course/${courseId}/learn`);
+    } else {
+      navigate(`/course/${courseId}`);
+    }
+
   };
 
   return (
