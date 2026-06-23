@@ -233,7 +233,12 @@ export default function CourseLearn() {
                       if (!selected?.title) return;
                       try {
                         setMarkingComplete(true);
-                        await enrollmentAPI.completeLesson({ courseId: id, lessonId: safeSelectedIndex });
+                        // Use stable lesson.order instead of sidebar index
+                        await enrollmentAPI.completeLesson({
+                          courseId: id,
+                          lessonId: selected?.order ?? safeSelectedIndex,
+                        });
+
                         const enrollRes = await enrollmentAPI.getEnrollmentByCourse(id);
                         setEnrollment(enrollRes.data.data);
                         // Refresh course to keep UI derived states consistent

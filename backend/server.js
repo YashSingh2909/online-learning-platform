@@ -4,7 +4,6 @@ import dotenv from 'dotenv';
 import path from 'path';
 import connectDB from './config/database.js';
 
-
 // Import routes
 import authRoutes from './routes/authRoutes.js';
 import courseRoutes from './routes/courseRoutes.js';
@@ -18,14 +17,13 @@ import adminRoutes from './routes/adminRoutes.js';
 import uploadRoutes from './routes/uploadRoutes.js';
 import { seedDemoData } from './seed/demoSeed.js';
 
-
-// Load environment variables
 dotenv.config();
 
-// Initialize express app
 const app = express();
 
-  // Middleware
+// =====================
+// CORS
+// =====================
 const allowedOrigins = [
   process.env.FRONTEND_URL,
   'http://localhost:5173',
@@ -40,10 +38,6 @@ const allowedOrigins = [
   'http://127.0.0.1:5177',
 ].filter(Boolean);
 
-// Serve uploaded thumbnails
-app.use('/uploads', express.static(path.resolve('uploads')));
-
-
 const allowedOriginRegex = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
 
 app.use(cors({
@@ -56,9 +50,21 @@ app.use(cors({
   },
   credentials: true,
 }));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// =====================
+// STATIC FILE FIX (🔥 THIS WAS MISSING)
+// =====================
+app.use('/uploads', express.static(path.resolve('uploads')));
+
+// ✅ FIX FOR CERTIFICATES DOWNLOAD
+app.use('/certificates', express.static(path.resolve('certificates')));
+
+// =====================
+// START SERVER
+// =====================
 const startServer = async () => {
   const dbConnection = await connectDB();
   if (!dbConnection) {
@@ -71,7 +77,6 @@ const startServer = async () => {
   // Routes
   app.use('/api/uploads', uploadRoutes);
   app.use('/api/auth', authRoutes);
-
   app.use('/api/courses', courseRoutes);
   app.use('/api/enrollments', enrollmentRoutes);
   app.use('/api/quizzes', quizRoutes);
@@ -107,7 +112,7 @@ const startServer = async () => {
 
   server.on('error', (error) => {
     if (error.code === 'EADDRINUSE') {
-      console.error(`Port ${PORT} is already in use. Make sure no other server is running on that port.`);
+      console.error(`Port ${PORT} is already in use.`);
     } else {
       console.error('Server error:', error);
     }
@@ -115,4 +120,3 @@ const startServer = async () => {
 };
 
 startServer();
-

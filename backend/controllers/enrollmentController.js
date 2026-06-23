@@ -99,15 +99,37 @@ export const completeLesson = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Enrollment not found' });
     }
 
+    const beforeCount = enrollment.completedLessons?.length ?? 0;
+
     // Add lesson to completed lessons if not already
-    if (!enrollment.completedLessons.includes(lessonId)) {
+    const alreadyCompleted = enrollment.completedLessons?.includes(lessonId);
+    if (!alreadyCompleted) {
       enrollment.completedLessons.push(lessonId);
     }
 
     // Calculate progress
     const course = await Course.findById(courseId);
-    const totalLessons = course.lessons.length;
-    enrollment.progress = Math.round((enrollment.completedLessons.length / totalLessons) * 100);
+    const totalLessons = course?.lessons?.length ?? 0;
+
+    // Defensive: avoid NaN/Infinity if course has 0 lessons
+    if (!totalLessons || totalLessons <= 0) {
+      enrollment.progress = 0;
+    } else {
+      enrollment.progress = Math.round((enrollment.completedLessons.length / totalLessons) * 100);
+    }
+
+    const afterCount = enrollment.completedLessons?.length ?? 0;
+    console.log('[PROGRESS DEBUG]', {
+      courseId,
+      lessonId,
+      totalLessons,
+      alreadyCompleted,
+      beforeCount,
+      afterCount,
+      progressAfter: enrollment.progress,
+    });
+
+
 
     if (enrollment.progress === 100) {
       enrollment.status = 'completed';

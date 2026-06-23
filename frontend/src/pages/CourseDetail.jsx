@@ -1,7 +1,7 @@
-import React from 'react';
-import { useParams } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 
-import { Navigate } from 'react-router-dom';
+
 
 import { useAuth } from '../context/AuthContext';
 import { courseAPI, enrollmentAPI, paymentAPI } from '../api/apiService';
