@@ -30,6 +30,10 @@ import CourseManagement from './components/instructor/CourseManagement';
 import LessonsManager from './components/instructor/LessonsManager';
 import QuizzesManager from './components/instructor/QuizzesManager';
 import AssignmentsManager from './components/instructor/AssignmentsManager';
+import InstructorAssignmentGrading from './pages/instructor/InstructorAssignmentGrading';
+
+
+
 
 const Page = ({ children }) => <Layout>{children}</Layout>;
 
@@ -169,6 +173,7 @@ function App() {
               <Route path="lessons" element={<LessonsManager />} />
               <Route path="quizzes" element={<QuizzesManager />} />
               <Route path="assignments" element={<AssignmentsManager />} />
+              <Route path="assignments/grading" element={<InstructorAssignmentGrading />} />
             </Route>
             <Route path=":courseId/publish" element={<LegacyInstructorCourseAlias section="lessons" />} />
             <Route path=":courseId/lessons" element={<LegacyInstructorCourseAlias section="lessons" />} />

@@ -32,11 +32,11 @@ export default function Home() {
   }, []);
 
   const handleCourseClick = (courseId) => {
-    if (user) {
-      navigate(`/course/${courseId}`);
-    } else {
+    if (!user) {
       navigate('/login');
+      return;
     }
+    navigate(`/course/${courseId}/learn`);
   };
 
   return (
@@ -136,10 +136,15 @@ export default function Home() {
           ) : courses.length > 0 ? (
             <div className="courses-grid">
               {courses.slice(0, 6).map((course) => (
-                <div
+                  <div
                   key={course._id}
                   onClick={() => handleCourseClick(course._id)}
                   className="course-card"
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') handleCourseClick(course._id);
+                  }}
                 >
                   <div className="course-thumbnail">
                     <img src={course.thumbnail} alt={course.title} />

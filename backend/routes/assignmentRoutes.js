@@ -6,6 +6,7 @@ import {
   submitAssignment,
   gradeSubmission,
   getUserSubmissions,
+  getAllCourseSubmissions,
   updateAssignment,
   deleteAssignment,
   replaceAssignmentResources,
@@ -24,10 +25,15 @@ router.put('/:id', protect, authorize('instructor', 'admin'), updateAssignment);
 router.delete('/:id', protect, authorize('instructor', 'admin'), deleteAssignment);
 router.post('/:id/resources/replace', protect, authorize('instructor', 'admin'), replaceAssignmentResources);
 
-
 router.post('/:id/submit', protect, submitAssignment);
 router.put('/:id/grade', protect, authorize('instructor', 'admin'), gradeSubmission);
+
+// Student endpoint: only own submissions
 router.get('/submissions/course/:courseId', protect, getUserSubmissions);
 
+// Instructor/admin endpoint: all submissions for a course
+router.get('/submissions/instructor/course/:courseId', protect, authorize('instructor', 'admin'), getAllCourseSubmissions);
+
 export default router;
+
 

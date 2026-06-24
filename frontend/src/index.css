@@ -324,7 +324,20 @@ img {
 .course-card:active {
   outline: none;
   box-shadow: none;
-  transform: none;
+  transform: translateY(0);
+}
+
+/* Prevent lingering focus styling after navigation */
+.course-card:focus:not(:focus-visible) {
+  outline: none;
+  box-shadow: none;
+  transform: translateY(0) !important;
+}
+
+.course-card:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+  transform: translateY(0) !important;
 }
 
 .course-card:hover {

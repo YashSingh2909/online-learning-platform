@@ -176,7 +176,7 @@ export default function CourseLearn() {
                       <button
                         key={index}
                         onClick={() => setSelectedLesson(index)}
-                        className={`w-full text-left px-4 py-3 rounded-xl border transition ${
+                        className={`w-full text-left px-4 py-3 rounded-xl border transition focus:outline-none focus:ring-0 focus-visible:outline-none active:translate-y-0 active:shadow-none ${
                           active
                             ? 'border-cyan-400/60 bg-cyan-500/10'
                             : 'border-white/10 bg-white/5 hover:border-cyan-400/30'
@@ -221,7 +221,7 @@ export default function CourseLearn() {
           <section className="space-y-4">
             <div className="rounded-2xl bg-white/5 ring-1 ring-white/10 p-4">
               {/* Video player */}
-              <div className="rounded-xl bg-slate-950/40 overflow-hidden">
+              <div className="rounded-xl bg-slate-950/40 overflow-hidden ring-1 ring-white/10">
                 {selected?.videoUrl ? (
                   <video
                     key={safeSelectedIndex}

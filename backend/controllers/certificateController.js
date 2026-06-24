@@ -40,12 +40,74 @@ export const generateCourseCertificate = async (req, res) => {
       });
     }
 
-    if (enrollment.progress < 100) {
+    // Certificate eligibility must depend on all required course components:
+    // 1) all lessons completed
+    // 2) required quizzes passed
+    // 3) required assignments graded
+    //
+    // To minimize model/schema changes, we enforce the same requirement checks used by progress computation,
+    // but here we make it strict and non-weighted.
+
+    const lessons = Array.isArray(enrollment.course?.lessons) ? enrollment.course.lessons : [];
+    const totalLessons = lessons.length;
+    const completedLessonsCount = (enrollment.completedLessons || []).length;
+
+    // Load required published/free-preview quizzes and assignments.
+    const Quiz = (await import('../models/Quiz.js')).default;
+    const Assignment = (await import('../models/Assignment.js')).default;
+
+    const quizzes = await Quiz.find({
+      course: enrollment.course._id,
+      $or: [{ isPublished: true }, { isFreePreview: true }],
+    }).select('passingScore totalPoints');
+
+    const quizCount = quizzes.length;
+    let passedQuizzes = 0;
+
+    // Find highest score % for each quiz by scanning attempts.
+    for (const quiz of quizzes) {
+      const quizDoc = await Quiz.findById(quiz._id).select('attempts passingScore totalPoints');
+      const attempts = Array.isArray(quizDoc.attempts) ? quizDoc.attempts : [];
+      const studentAttempts = attempts.filter((a) => a.student?.toString() === enrollment.student._id.toString());
+      if (studentAttempts.length === 0) continue;
+
+      const highest = studentAttempts.reduce((max, a) => {
+        const cur = typeof a.score === 'number' ? a.score : 0;
+        const best = typeof max.score === 'number' ? max.score : 0;
+        return cur > best ? a : max;
+      }, studentAttempts[0]);
+
+      const totalPoints = typeof quizDoc.totalPoints === 'number' && quizDoc.totalPoints > 0 ? quizDoc.totalPoints : 0;
+      const highestPct = totalPoints > 0 ? (highest.score / totalPoints) * 100 : 0;
+      if (highestPct >= quizDoc.passingScore) passedQuizzes += 1;
+    }
+
+    const assignments = await Assignment.find({
+      course: enrollment.course._id,
+      $or: [{ isPublished: true }, { isFreePreview: true }],
+    }).select('submissions');
+
+    const assignmentCount = assignments.length;
+    let gradedAssignments = 0;
+    for (const a of assignments) {
+      const subs = Array.isArray(a.submissions) ? a.submissions : [];
+      const sub = subs.find((s) => s.student?.toString() === enrollment.student._id.toString());
+      if (sub?.status === 'graded') gradedAssignments += 1;
+    }
+
+    const hasAllLessons = totalLessons === 0 ? true : completedLessonsCount === totalLessons;
+    const hasAllQuizzesPassed = quizCount === 0 ? true : passedQuizzes === quizCount;
+    const hasAllAssignmentsGraded = assignmentCount === 0 ? true : gradedAssignments === assignmentCount;
+
+    if (!hasAllLessons || !hasAllQuizzesPassed || !hasAllAssignmentsGraded) {
       return res.status(400).json({
         success: false,
-        message: 'Course not completed yet',
+        message: 'Course requirements not completed yet',
       });
     }
+
+
+
 
     console.log('[CERT] enrollment.certificateReceived:', enrollment.certificateReceived);
     if (enrollment.certificateReceived) {

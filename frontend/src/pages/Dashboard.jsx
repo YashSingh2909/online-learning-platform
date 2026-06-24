@@ -177,8 +177,8 @@ export default function Dashboard() {
                     {courses.slice(0, 6).map((course) => (
                       <Link
                         key={course._id}
-                        to={`/course/${course._id}`}
-                        className="block rounded-2xl bg-white/5 ring-1 ring-white/10 overflow-hidden hover:ring-cyan-400/40 transition"
+                        to={`/course/${course._id}/learn`}
+                        className="block rounded-2xl bg-white/5 ring-1 ring-white/10 overflow-hidden hover:ring-cyan-400/40 transition focus:outline-none focus-visible:outline-none"
                       >
                         <div className="h-28 relative overflow-hidden">
                           <img src={course.thumbnail} alt={course.title} className="w-full h-full object-cover opacity-90" />

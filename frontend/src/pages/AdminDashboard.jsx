@@ -76,8 +76,8 @@ export default function AdminDashboard() {
         </div>
 
         {/* Admin Tabs */}
-        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem' }}>
-          {['dashboard', 'users', 'courses'].map((tab) => (
+        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+          {['dashboard', 'users', 'courses', 'analytics', 'submissions'].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -110,6 +110,7 @@ export default function AdminDashboard() {
             Logout
           </button>
         </div>
+
 
         {/* Dashboard Tab */}
         {activeTab === 'dashboard' && (
@@ -253,10 +254,150 @@ export default function AdminDashboard() {
         {activeTab === 'courses' && (
           <CourseManagement showForm={showCourseForm} setShowForm={setShowCourseForm} />
         )}
+
+        {/* Analytics Tab */}
+        {activeTab === 'analytics' && <AnalyticsPanel />}
+
+        {/* Submissions Tab */}
+        {activeTab === 'submissions' && <SubmissionsPanel />}
       </div>
     </div>
   );
 }
+
+function AnalyticsPanel() {
+  const { user } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState(null);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    let mounted = true;
+    const run = async () => {
+      try {
+        setLoading(true);
+        setError('');
+        const res = await adminAPI.getAnalytics();
+        if (!mounted) return;
+        setData(res.data.data);
+      } catch (e) {
+        if (!mounted) return;
+        setError(e?.response?.data?.message || e?.message || 'Failed to load analytics');
+      } finally {
+        if (!mounted) return;
+        setLoading(false);
+      }
+    };
+    if (user?.role === 'admin') run();
+    return () => {
+      mounted = false;
+    };
+  }, [user]);
+
+  if (loading) return <div className="dashboard-section">Loading analytics...</div>;
+  if (error) return <div className="dashboard-section">{error}</div>;
+
+  return (
+    <div className="dashboard-section">
+      <h2 className="dashboard-section-title">Analytics</h2>
+      <p className="dashboard-section-desc">Platform-wide overview.</p>
+
+      <div className="dashboard-stats" style={{ marginTop: '1rem' }}>
+        <div className="stat-card">
+          <p className="stat-label">Avg Progress</p>
+          <p className="stat-value" style={{ fontSize: '2rem' }}>{data?.completion?.avgProgress ?? 0}%</p>
+        </div>
+        <div className="stat-card">
+          <p className="stat-label">Users</p>
+          <p className="stat-value" style={{ fontSize: '2rem' }}>{data?.totals?.students ?? 0}</p>
+        </div>
+        <div className="stat-card">
+          <p className="stat-label">Instructors</p>
+          <p className="stat-value" style={{ fontSize: '2rem' }}>{data?.totals?.instructors ?? 0}</p>
+        </div>
+        <div className="stat-card">
+          <p className="stat-label">Courses</p>
+          <p className="stat-value" style={{ fontSize: '2rem' }}>{data?.totals?.courses ?? 0}</p>
+        </div>
+      </div>
+
+      <div style={{ marginTop: '1rem', color: '#888', fontSize: '0.9rem' }}>
+        Quizzes: {data?.totals?.quizzes ?? 0} • Assignments: {data?.totals?.assignments ?? 0}
+      </div>
+    </div>
+  );
+}
+
+function SubmissionsPanel() {
+  const [loading, setLoading] = useState(true);
+  const [items, setItems] = useState([]);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    let mounted = true;
+    const run = async () => {
+      try {
+        setLoading(true);
+        setError('');
+        const res = await adminAPI.getSubmissions({ limit: 200 });
+        if (!mounted) return;
+        setItems(res.data.data || []);
+      } catch (e) {
+        if (!mounted) return;
+        setError(e?.response?.data?.message || e?.message || 'Failed to load submissions');
+      } finally {
+        if (!mounted) return;
+        setLoading(false);
+      }
+    };
+    run();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  if (loading) return <div className="dashboard-section">Loading submissions...</div>;
+  if (error) return <div className="dashboard-section">{error}</div>;
+
+  return (
+    <div className="dashboard-section">
+      <h2 className="dashboard-section-title">Submissions</h2>
+      <p className="dashboard-section-desc">Latest assignment submissions (read-only).</p>
+
+      <div style={{ overflowX: 'auto', marginTop: '1rem' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <thead>
+            <tr style={{ borderBottom: '1px solid #333' }}>
+              <th style={{ textAlign: 'left', padding: '0.75rem', color: '#888', fontSize: '0.75rem' }}>Course</th>
+              <th style={{ textAlign: 'left', padding: '0.75rem', color: '#888', fontSize: '0.75rem' }}>Assignment</th>
+              <th style={{ textAlign: 'left', padding: '0.75rem', color: '#888', fontSize: '0.75rem' }}>Student</th>
+              <th style={{ textAlign: 'left', padding: '0.75rem', color: '#888', fontSize: '0.75rem' }}>Status</th>
+              <th style={{ textAlign: 'left', padding: '0.75rem', color: '#888', fontSize: '0.75rem' }}>Submitted</th>
+              <th style={{ textAlign: 'left', padding: '0.75rem', color: '#888', fontSize: '0.75rem' }}>Score</th>
+            </tr>
+          </thead>
+          <tbody>
+            {items.map((it) => (
+              <tr key={it._id} style={{ borderBottom: '1px solid #222' }}>
+                <td style={{ padding: '0.75rem', color: '#fff' }}>{it.courseTitle || '—'}</td>
+                <td style={{ padding: '0.75rem', color: '#888' }}>{it.assignmentTitle || '—'}</td>
+                <td style={{ padding: '0.75rem', color: '#888' }}>{String(it.studentId || '')}</td>
+                <td style={{ padding: '0.75rem' }}>
+                  <span style={{ padding: '0.25rem 0.5rem', borderRadius: '4px', fontSize: '0.75rem', background: it.status === 'graded' ? '#10b981' : '#333', color: '#fff' }}>
+                    {it.status}
+                  </span>
+                </td>
+                <td style={{ padding: '0.75rem', color: '#888' }}>{it.submittedAt ? new Date(it.submittedAt).toLocaleString() : '—'}</td>
+                <td style={{ padding: '0.75rem', color: '#888' }}>{typeof it.score === 'number' ? it.score : '—'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
 
 function UserManagement({ showForm, setShowForm }) {
   const [users, setUsers] = useState([]);

@@ -9,8 +9,17 @@ import {
   createCourse,
   updateCourse,
   deleteCourse,
-  getDashboardStats
+  getDashboardStats,
+
+  // enhanced admin controls
+  setUserBlocked,
+  setUserRole,
+  setCourseInstructor,
+  setCoursePublishState,
+  getAdminAnalytics,
+  getAdminAllSubmissions,
 } from '../controllers/adminController.js';
+
 import { protect, authorize } from '../middleware/auth.js';
 
 const router = express.Router();
@@ -35,4 +44,25 @@ router.post('/courses', createCourse);
 router.put('/courses/:id', updateCourse);
 router.delete('/courses/:id', deleteCourse);
 
+// Admin course instructor assignment
+router.put('/courses/:id/instructor', setCourseInstructor);
+
+// Admin publish/unpublish
+router.put('/courses/:id/publish', setCoursePublishState);
+router.put('/courses/:id/unpublish', setCoursePublishState);
+
+// Analytics
+router.get('/analytics', getAdminAnalytics);
+
+// Submissions overview
+router.get('/submissions', getAdminAllSubmissions);
+
+// User block/unblock
+router.put('/users/:id/block', setUserBlocked);
+
+// User role update
+router.put('/users/:id/role', setUserRole);
+
 export default router;
+
+

@@ -1,11 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
+
 import { useAuth } from '../../context/AuthContext';
 import { assignmentAPI, uploadAPI } from '../../api/apiService';
+
 
 export default function InstructorAssignmentsManager() {
   const { courseId } = useParams();
   const { user } = useAuth();
+  const navigate = useNavigate();
+
 
   const [assignments, setAssignments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -195,11 +199,22 @@ export default function InstructorAssignmentsManager() {
                   <h2 className="dashboard-section-title">Existing Assignments</h2>
                   <p className="dashboard-section-desc">Edit, upload, or delete.</p>
                 </div>
-                <button className="btn-outline-alt" onClick={resetForm} type="button" disabled={loading}>
-                  + New Assignment
-                </button>
+                <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                  <button
+                    type="button"
+                    className="btn-outline-alt"
+                    onClick={() => navigate(`/instructor/course/${courseId}/assignments/grading`)}
+                    disabled={loading}
+                  >
+                    Grade Assignments
+                  </button>
+                  <button className="btn-outline-alt" onClick={resetForm} type="button" disabled={loading}>
+                    + New Assignment
+                  </button>
+                </div>
 
               </div>
+
 
               {assignments.length === 0 ? (
                 <div className="dashboard-empty" style={{ marginTop: '1rem' }}>

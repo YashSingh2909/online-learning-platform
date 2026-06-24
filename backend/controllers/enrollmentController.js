@@ -2,6 +2,8 @@ import Enrollment from '../models/Enrollment.js';
 import Course from '../models/Course.js';
 import User from '../models/User.js';
 import Notification from '../models/Notification.js';
+import Quiz from '../models/Quiz.js';
+import Assignment from '../models/Assignment.js';
 
 // Enroll in a course
 export const enrollCourse = async (req, res) => {
@@ -85,6 +87,197 @@ export const getEnrollmentByCourse = async (req, res) => {
   }
 };
 
+// Centralized: recompute weighted progress based on existing course requirements.
+const recalculateEnrollmentProgressLegacy = async ({ enrollment, course }) => {
+
+  // Lessons component
+  const lessons = Array.isArray(course?.lessons) ? course.lessons : [];
+  const totalLessons = lessons.length;
+  const completedLessonsCount = (enrollment.completedLessons || []).length;
+
+  const lessonsRatio = totalLessons > 0 ? Math.min(1, completedLessonsCount / totalLessons) : 1;
+
+  // Quizzes component
+  const quizzes = await Quiz.find({
+    course: course._id,
+    // instructors see all; students rely on isPublished/isFreePreview elsewhere,
+    // but progress should not count locked quizzes for non-owners. We'll count only published or free preview.
+    $or: [{ isPublished: true }, { isFreePreview: true }],
+  }).select('passingScore');
+
+  const quizCount = quizzes.length;
+  let quizRatio = 1;
+  if (quizCount > 0) {
+    // Determine if student passed each quiz (or at least submitted) - best match: pass using passingScore.
+    // Using quiz.attempts to find a successful submission by this student.
+    const attemptsByQuizId = await Promise.all(
+      quizzes.map(async (q) => {
+        const attempt = (q.attempts || []).find((a) => a.student?.toString() === enrollment.student.toString());
+        return attempt;
+      })
+    );
+
+    // Determine passed quizzes based on attempt.score.
+
+    // quizController stores `attempt.score` as points.
+    // But quizController also defines pass/fail using the quiz's passingScore.
+    // So we use the same comparison here.
+    let passed = 0;
+    for (let i = 0; i < quizzes.length; i++) {
+      const q = quizzes[i];
+      const attempt = attemptsByQuizId[i];
+      if (!attempt) continue;
+      if (attempt.score >= q.passingScore) passed += 1;
+    }
+
+    quizRatio = passed / quizCount;
+  }
+
+
+  // Assignments component
+  const assignments = await Assignment.find({
+    course: course._id,
+    $or: [{ isPublished: true }, { isFreePreview: true }],
+  }).select('totalPoints');
+
+  const assignmentCount = assignments.length;
+  let assignmentRatio = 1;
+  if (assignmentCount > 0) {
+    // Count graded submissions only (most strict). If feedback says grading mandatory, this matches requirement.
+    // If grading is optional, we'd count submitted. Your ask: "If grading is mandatory: count only after grading".
+    // We count graded = submissions with status==='graded'.
+    let gradedCount = 0;
+    for (const a of assignments) {
+      const sub = (a.submissions || []).find((s) => s.student?.toString() === enrollment.student.toString());
+      if (!sub) continue;
+      if (sub.status === 'graded') gradedCount += 1;
+    }
+    assignmentRatio = gradedCount / assignmentCount;
+  }
+
+  // Dynamic weights: only include components that exist in the course.
+  const hasQuizzes = quizCount > 0;
+  const hasAssignments = assignmentCount > 0;
+  const hasLessons = totalLessons > 0;
+
+  // Base weights: lessons 60, quizzes 20, assignments 20.
+  // Re-normalize among existing components so a course with only lessons yields 100%.
+  let weights = [];
+  if (hasLessons) weights.push({ key: 'lessons', w: 60, ratio: lessonsRatio });
+  if (hasQuizzes) weights.push({ key: 'quizzes', w: 20, ratio: quizRatio });
+  if (hasAssignments) weights.push({ key: 'assignments', w: 20, ratio: assignmentRatio });
+
+  if (weights.length === 0) {
+    enrollment.progress = 0;
+    enrollment.status = 'active';
+    await enrollment.save();
+    return enrollment;
+  }
+
+  const totalW = weights.reduce((acc, x) => acc + x.w, 0);
+  const progress = weights.reduce((acc, x) => acc + x.ratio * (x.w / totalW), 0) * 100;
+
+  enrollment.progress = Math.round(Math.max(0, Math.min(100, progress)));
+  enrollment.status = enrollment.progress === 100 ? 'completed' : 'active';
+  await enrollment.save();
+  return enrollment;
+};
+
+// Recalculate weighted progress based on lessons + quizzes + assignments
+export const recalculateEnrollmentProgress = async ({ enrollment, course }) => {
+  // Lessons component
+  const lessons = Array.isArray(course?.lessons) ? course.lessons : [];
+  const totalLessons = lessons.length;
+  const completedLessonsCount = (enrollment.completedLessons || []).length;
+
+  const lessonsRatio = totalLessons > 0 ? Math.min(1, completedLessonsCount / totalLessons) : 1;
+
+  // Quizzes component
+  // IMPORTANT: quiz attempt `score` is stored as POINTS (not percentage).
+  // But `passingScore` is configured as a percentage threshold.
+  // So we must convert highest attempt score -> percentage using quiz.totalPoints.
+  const quizzes = await Quiz.find({
+    course: course._id,
+    $or: [{ isPublished: true }, { isFreePreview: true }],
+  }).select('passingScore totalPoints attempts questions');
+
+  const quizCount = quizzes.length;
+  let quizRatio = 1;
+
+  if (quizCount > 0) {
+    let passed = 0;
+
+    for (const quiz of quizzes) {
+      const attempts = Array.isArray(quiz.attempts) ? quiz.attempts : [];
+      const studentAttempts = attempts.filter(
+        (a) => a.student?.toString() === enrollment.student.toString()
+      );
+
+      if (studentAttempts.length === 0) continue;
+
+      // highest achieved points for this quiz
+      const highestAttempt = studentAttempts.reduce((max, a) => {
+        const pts = typeof a.score === 'number' ? a.score : 0;
+        const cur = typeof max.score === 'number' ? max.score : 0;
+        return pts > cur ? a : max;
+      }, studentAttempts[0]);
+
+      const highestPoints = typeof highestAttempt.score === 'number' ? highestAttempt.score : 0;
+      const totalPoints = typeof quiz.totalPoints === 'number' && quiz.totalPoints > 0 ? quiz.totalPoints : 0;
+      const highestPercentage = totalPoints > 0 ? (highestPoints / totalPoints) * 100 : 0;
+
+      if (highestPercentage >= quiz.passingScore) passed += 1;
+    }
+
+    quizRatio = passed / quizCount;
+  }
+
+  // Assignments component (grading is mandatory per spec)
+  const assignments = await Assignment.find({
+    course: course._id,
+    $or: [{ isPublished: true }, { isFreePreview: true }],
+  }).select('totalPoints submissions');
+
+  const assignmentCount = assignments.length;
+  let assignmentRatio = 1;
+
+  if (assignmentCount > 0) {
+    let gradedCount = 0;
+    for (const a of assignments) {
+      const subs = Array.isArray(a.submissions) ? a.submissions : [];
+      const sub = subs.find((s) => s.student?.toString() === enrollment.student.toString());
+      if (!sub) continue;
+      if (sub.status === 'graded') gradedCount += 1;
+    }
+    assignmentRatio = gradedCount / assignmentCount;
+  }
+
+  // Dynamic weights: only include components that exist in the course.
+  const hasQuizzes = quizCount > 0;
+  const hasAssignments = assignmentCount > 0;
+  const hasLessons = totalLessons > 0;
+
+  let weights = [];
+  if (hasLessons) weights.push({ key: 'lessons', w: 60, ratio: lessonsRatio });
+  if (hasQuizzes) weights.push({ key: 'quizzes', w: 20, ratio: quizRatio });
+  if (hasAssignments) weights.push({ key: 'assignments', w: 20, ratio: assignmentRatio });
+
+  if (weights.length === 0) {
+    enrollment.progress = 0;
+    enrollment.status = 'active';
+    await enrollment.save();
+    return enrollment;
+  }
+
+  const totalW = weights.reduce((acc, x) => acc + x.w, 0);
+  const progress = weights.reduce((acc, x) => acc + x.ratio * (x.w / totalW), 0) * 100;
+
+  enrollment.progress = Math.round(Math.max(0, Math.min(100, progress)));
+  enrollment.status = enrollment.progress === 100 ? 'completed' : 'active';
+  await enrollment.save();
+  return enrollment;
+};
+
 // Mark lesson as complete
 export const completeLesson = async (req, res) => {
   try {
@@ -99,49 +292,25 @@ export const completeLesson = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Enrollment not found' });
     }
 
-    const beforeCount = enrollment.completedLessons?.length ?? 0;
-
     // Add lesson to completed lessons if not already
     const alreadyCompleted = enrollment.completedLessons?.includes(lessonId);
     if (!alreadyCompleted) {
       enrollment.completedLessons.push(lessonId);
     }
 
-    // Calculate progress
     const course = await Course.findById(courseId);
-    const totalLessons = course?.lessons?.length ?? 0;
-
-    // Defensive: avoid NaN/Infinity if course has 0 lessons
-    if (!totalLessons || totalLessons <= 0) {
-      enrollment.progress = 0;
-    } else {
-      enrollment.progress = Math.round((enrollment.completedLessons.length / totalLessons) * 100);
+    if (!course) {
+      return res.status(404).json({ success: false, message: 'Course not found' });
     }
 
-    const afterCount = enrollment.completedLessons?.length ?? 0;
-    console.log('[PROGRESS DEBUG]', {
-      courseId,
-      lessonId,
-      totalLessons,
-      alreadyCompleted,
-      beforeCount,
-      afterCount,
-      progressAfter: enrollment.progress,
-    });
+    await recalculateEnrollmentProgress({ enrollment, course });
 
-
-
-    if (enrollment.progress === 100) {
-      enrollment.status = 'completed';
-    }
-
-    await enrollment.save();
-
-    res.status(200).json({ success: true, data: enrollment });
+    return res.status(200).json({ success: true, data: enrollment });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
 
 // Get course enrollments (for instructor)
 export const getCourseEnrollments = async (req, res) => {

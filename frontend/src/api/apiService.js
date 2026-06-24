@@ -47,7 +47,15 @@ export const uploadAPI = {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
   },
+  uploadStudentAssignmentFile: (file) => {
+    const fd = new FormData();
+    fd.append('file', file);
+    return axiosInstance.post('/uploads/student-assignment-file', fd, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
 };
+
 
 
 export const enrollmentAPI = {
@@ -86,6 +94,7 @@ export const assignmentAPI = {
   submitAssignment: (id, data) => axiosInstance.post(`/assignments/${id}/submit`, data),
   gradeSubmission: (id, data) => axiosInstance.put(`/assignments/${id}/grade`, data),
   getUserSubmissions: (courseId) => axiosInstance.get(`/assignments/submissions/course/${courseId}`),
+  getInstructorCourseSubmissions: (courseId) => axiosInstance.get(`/assignments/submissions/instructor/course/${courseId}`),
 };
 
 
@@ -116,8 +125,20 @@ export const adminAPI = {
   createUser: (data) => axiosInstance.post('/admin/users', data),
   updateUser: (id, data) => axiosInstance.put(`/admin/users/${id}`, data),
   deleteUser: (id) => axiosInstance.delete(`/admin/users/${id}`),
+
+  // new admin endpoints
+  blockUser: (id, isBlocked) => axiosInstance.put(`/admin/users/${id}/block`, { isBlocked }),
+  setUserRole: (id, role) => axiosInstance.put(`/admin/users/${id}/role`, { role }),
+
   getAllCourses: (params) => axiosInstance.get('/admin/courses', { params }),
   createCourse: (data) => axiosInstance.post('/admin/courses', data),
   updateCourse: (id, data) => axiosInstance.put(`/admin/courses/${id}`, data),
   deleteCourse: (id) => axiosInstance.delete(`/admin/courses/${id}`),
+
+  setCourseInstructor: (courseId, instructorId) => axiosInstance.put(`/admin/courses/${courseId}/instructor`, { instructorId }),
+  publishCourse: (courseId, status) => axiosInstance.put(`/admin/courses/${courseId}/${status === 'published' ? 'publish' : 'unpublish'}`, { status }),
+
+  getAnalytics: () => axiosInstance.get('/admin/analytics'),
+  getSubmissions: (params) => axiosInstance.get('/admin/submissions', { params }),
 };
+

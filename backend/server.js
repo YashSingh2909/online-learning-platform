@@ -15,7 +15,9 @@ import notificationRoutes from './routes/notificationRoutes.js';
 import certificateRoutes from './routes/certificateRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import uploadRoutes from './routes/uploadRoutes.js';
+import uploadStudentRoutes from './routes/uploadStudentRoutes.js';
 import { seedDemoData } from './seed/demoSeed.js';
+
 
 dotenv.config();
 
@@ -76,6 +78,8 @@ const startServer = async () => {
 
   // Routes
   app.use('/api/uploads', uploadRoutes);
+  app.use('/api/uploads', uploadStudentRoutes);
+
   app.use('/api/auth', authRoutes);
   app.use('/api/courses', courseRoutes);
   app.use('/api/enrollments', enrollmentRoutes);

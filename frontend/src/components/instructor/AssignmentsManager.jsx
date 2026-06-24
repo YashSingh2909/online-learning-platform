@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { assignmentAPI, uploadAPI } from '../../api/apiService';
 
 const initialForm = {
@@ -13,6 +13,7 @@ const initialForm = {
 
 export default function AssignmentsManager() {
   const { courseId } = useParams();
+  const navigate = useNavigate();
   const [assignments, setAssignments] = useState([]);
   const [form, setForm] = useState(initialForm);
   const [resourceFiles, setResourceFiles] = useState([]);
@@ -111,10 +112,11 @@ export default function AssignmentsManager() {
 
   return (
     <div className="dashboard-grid instructor-two-column">
-      <div className="dashboard-section" style={{ marginTop: 0 }}>
+        <div className="dashboard-section" style={{ marginTop: 0 }}>
         <div className="dashboard-section-header">
           <div>
             <h2 className="dashboard-section-title">{editingId ? 'Edit Assignment' : 'Create Assignment'}</h2>
+
             <p className="dashboard-section-desc">Set deadline, max score, and optional resource files.</p>
           </div>
         </div>
@@ -157,11 +159,21 @@ export default function AssignmentsManager() {
         </form>
       </div>
 
-      <div className="dashboard-section" style={{ marginTop: 0 }}>
+        <div className="dashboard-section" style={{ marginTop: 0 }}>
         <div className="dashboard-section-header">
           <div>
             <h2 className="dashboard-section-title">Assignments</h2>
-            <p className="dashboard-section-desc">Review submissions count and manage assignment details.</p>
+            <p className="dashboard-section-desc">Review submissions count, manage assignment details, and grade.</p>
+          </div>
+          <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+            <button
+              type="button"
+              className="btn-outline-alt"
+              onClick={() => navigate(`/instructor/course/${courseId}/assignments/grading`)}
+              disabled={loading}
+            >
+              Grade Assignments
+            </button>
           </div>
         </div>
 

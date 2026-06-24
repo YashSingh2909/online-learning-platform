@@ -244,10 +244,36 @@ export const submitQuiz = async (req, res) => {
     quiz.attempts.push(attempt);
     await quiz.save();
 
+    // Recalculate weighted progress after successful quiz submission.
+    // (progress is course-aware and dynamic; only published/free-preview quizzes count)
+    try {
+      // We need the student's enrollment for this quiz's course.
+      // eslint-disable-next-line no-undef
+      const Enrollment = (await import('../models/Enrollment.js')).default;
+      const Course = (await import('../models/Course.js')).default;
+
+      const course = await Course.findById(quiz.course);
+      const enrollment = await Enrollment.findOne({ student: req.user.id, course: quiz.course });
+      if (enrollment && course) {
+        const enrollmentCtrl = await import('./enrollmentController.js');
+        await enrollmentCtrl.recalculateEnrollmentProgress({ enrollment, course });
+      }
+    } catch (e) {
+      // Progress recalculation should not break quiz submission.
+      console.error('Progress recalculation after quiz submit failed:', e);
+    }
+
     const isPassed = score >= quiz.passingScore;
+
+    // Retakes are allowed.
+    // Progress/cert eligibility are computed using student's HIGHEST quiz percentage,
+    // so later failed attempts MUST NOT reduce progress.
+    // NOTE: We do not store any "passed" flags here; enrollment + certificate logic uses highest attempt.
 
     // Build result contract expected by UI
     const totalQuestions = quiz.questions.length;
+
+
     const correctCount = normalizedAnswers.reduce((acc, ans, idx) => {
       if (ans === undefined) return acc;
       return String(ans) === String(quiz.questions[idx].correctAnswer) ? acc + 1 : acc;

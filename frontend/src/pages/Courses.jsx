@@ -41,17 +41,13 @@ export default function Courses() {
   const gridCourses = useMemo(() => courses || [], [courses]);
 
   const handleViewCourse = (courseId) => {
-    // CourseDetail is protected, so redirect to login if not authenticated
+    // CourseDetailLearn is protected, so redirect to login if not authenticated
     if (!user) {
       navigate('/login');
       return;
     }
-    if (user) {
-      navigate(`/course/${courseId}/learn`);
-    } else {
-      navigate(`/course/${courseId}`);
-    }
 
+    navigate(`/course/${courseId}/learn`);
   };
 
   return (

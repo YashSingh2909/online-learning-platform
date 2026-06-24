@@ -210,7 +210,7 @@ export const deleteAssignment = async (req, res) => {
   }
 };
 
-// Submit assignment
+// Submit assignment (accept uploaded file URL)
 export const submitAssignment = async (req, res) => {
   try {
     const { fileUrl } = req.body;
@@ -220,7 +220,16 @@ export const submitAssignment = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Assignment not found' });
     }
 
+
+    // Security: students must not submit locked/unpublished assignments.
+    if (req.user?.role !== 'instructor' && req.user?.role !== 'admin') {
+      if (!assignment.isPublished && !assignment.isFreePreview) {
+        return res.status(403).json({ success: false, message: 'Assignment is locked' });
+      }
+    }
+
     // Check if already submitted
+
     const existingSubmission = assignment.submissions.find((s) => s.student.toString() === req.user.id);
 
     if (existingSubmission) {
@@ -237,7 +246,22 @@ export const submitAssignment = async (req, res) => {
     assignment.submissions.push(submission);
     await assignment.save();
 
+    // Recalculate weighted progress after successful assignment submission.
+    try {
+      const Enrollment = (await import('../models/Enrollment.js')).default;
+      const Course = (await import('../models/Course.js')).default;
+      const course = await Course.findById(assignment.course);
+      const enrollment = await Enrollment.findOne({ student: req.user.id, course: assignment.course });
+      if (enrollment && course) {
+        const enrollmentCtrl = await import('./enrollmentController.js');
+        await enrollmentCtrl.recalculateEnrollmentProgress({ enrollment, course });
+      }
+    } catch (e) {
+      console.error('Progress recalculation after assignment submit failed:', e);
+    }
+
     res.status(200).json({ success: true, data: assignment });
+
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -270,7 +294,22 @@ export const gradeSubmission = async (req, res) => {
 
     await assignment.save();
 
+    // Recalculate weighted progress after grading (grading is mandatory per spec).
+    try {
+      const Enrollment = (await import('../models/Enrollment.js')).default;
+      const Course = (await import('../models/Course.js')).default;
+      const course = await Course.findById(assignment.course);
+      const enrollment = await Enrollment.findOne({ student: submission.student, course: assignment.course });
+      if (enrollment && course) {
+        const enrollmentCtrl = await import('./enrollmentController.js');
+        await enrollmentCtrl.recalculateEnrollmentProgress({ enrollment, course });
+      }
+    } catch (e) {
+      console.error('Progress recalculation after assignment grading failed:', e);
+    }
+
     // Create notification for student
+
     await Notification.create({
       recipient: submission.student,
       title: 'Assignment Graded',
@@ -285,7 +324,7 @@ export const gradeSubmission = async (req, res) => {
   }
 };
 
-// Get user's submissions
+// Get user's submissions (student view) - unchanged API contract
 export const getUserSubmissions = async (req, res) => {
   try {
     const assignments = await Assignment.find({ course: req.params.courseId });
@@ -301,6 +340,51 @@ export const getUserSubmissions = async (req, res) => {
         });
       }
     });
+
+    res.status(200).json({ success: true, data: submissions });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Instructor/admin: get all submissions for a course (grouped client-side)
+export const getAllCourseSubmissions = async (req, res) => {
+  try {
+    const { courseId } = req.params;
+
+    // Role-based access: instructor/admin only (enforced by middleware ideally, but keep safe here)
+    const isInstructorOrAdmin = req.user?.role === 'instructor' || req.user?.role === 'admin';
+    if (!isInstructorOrAdmin) {
+      return res.status(403).json({ success: false, message: 'Not authorized' });
+    }
+
+    // Ownership check: instructor must own the course
+    // (admin can access all)
+    if (req.user?.role !== 'admin') {
+      const course = await Course.findById(courseId);
+      if (!course) return res.status(404).json({ success: false, message: 'Course not found' });
+      const isOwner = course.instructor?.toString() === req.user.id;
+      if (!isOwner) {
+        return res.status(403).json({ success: false, message: 'Not authorized' });
+      }
+    }
+
+    const assignments = await Assignment.find({ course: courseId }).populate('course instructor');
+
+    const submissions = [];
+
+    for (const assignment of assignments) {
+      const subs = Array.isArray(assignment.submissions) ? assignment.submissions : [];
+      for (const s of subs) {
+        submissions.push({
+          assignmentId: assignment._id,
+          title: assignment.title,
+          ...s.toObject(),
+          student: s.student, // make sure client can access item.student?.name if populated elsewhere
+          fileUrl: s.fileUrl,
+        });
+      }
+    }
 
     res.status(200).json({ success: true, data: submissions });
   } catch (error) {

@@ -31,17 +31,29 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: 'https://via.placeholder.com/150',
   },
+  // Admin control: allow blocking users from platform access.
+  isBlocked: {
+    type: Boolean,
+    default: false,
+  },
+
   bio: String,
   createdAt: {
     type: Date,
     default: Date.now,
   },
+  isBlocked: {
+    type: Boolean,
+    default: false,
+  },
+
   enrolledCourses: [
     {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Course',
     },
   ],
+
   createdCourses: [
     {
       type: mongoose.Schema.Types.ObjectId,
