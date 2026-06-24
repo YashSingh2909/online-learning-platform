@@ -57,14 +57,23 @@ const CourseChat = ({ courseId }) => {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '500px', border: '1px solid #ddd', borderRadius: '8px', background: '#fff' }}>
-      <div style={{ flex: 1, overflowY: 'auto', padding: '20px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '500px', background: 'var(--bg-card)', borderRadius: '1rem', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.05)' }}>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
         {messages.map((msg, i) => {
           const isMe = msg.sender?._id === (user._id || user.id);
           return (
-            <div key={msg._id || i} style={{ display: 'flex', flexDirection: 'column', alignItems: isMe ? 'flex-end' : 'flex-start', marginBottom: '15px' }}>
-              <span style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>{isMe ? 'You' : msg.sender?.name}</span>
-              <div style={{ background: isMe ? '#4F46E5' : '#F3F4F6', color: isMe ? '#fff' : '#111827', padding: '10px 15px', borderRadius: '8px', maxWidth: '70%' }}>
+            <div key={msg._id || i} style={{ display: 'flex', flexDirection: 'column', alignItems: isMe ? 'flex-end' : 'flex-start' }}>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.25rem', padding: '0 0.25rem' }}>{isMe ? 'You' : msg.sender?.name}</span>
+              <div style={{ 
+                padding: '0.75rem 1rem', 
+                borderRadius: '1rem', 
+                borderTopRightRadius: isMe ? '0.25rem' : '1rem',
+                borderTopLeftRadius: !isMe ? '0.25rem' : '1rem',
+                maxWidth: '75%', 
+                background: isMe ? 'var(--accent)' : 'rgba(255,255,255,0.05)', 
+                color: isMe ? '#fff' : 'var(--text-primary)', 
+                border: isMe ? 'none' : '1px solid rgba(255,255,255,0.1)' 
+              }}>
                 {msg.content}
               </div>
             </div>
@@ -72,15 +81,15 @@ const CourseChat = ({ courseId }) => {
         })}
         <div ref={messagesEndRef} />
       </div>
-      <form onSubmit={sendMessage} style={{ display: 'flex', padding: '15px', borderTop: '1px solid #ddd' }}>
+      <form onSubmit={sendMessage} style={{ display: 'flex', padding: '1rem', borderTop: '1px solid rgba(255,255,255,0.05)', background: 'rgba(0,0,0,0.2)' }}>
         <input 
           type="text" 
           value={input} 
           onChange={(e) => setInput(e.target.value)} 
           placeholder="Type your message..." 
-          style={{ flex: 1, padding: '10px', borderRadius: '4px', border: '1px solid #ddd', marginRight: '10px' }}
+          style={{ flex: 1, marginRight: '0.75rem', padding: '0.75rem 1.25rem', borderRadius: '2rem', background: 'var(--bg-primary)', border: '1px solid rgba(255,255,255,0.1)', color: 'var(--text-primary)', outline: 'none' }}
         />
-        <button type="submit" style={{ background: '#4F46E5', color: '#fff', border: 'none', padding: '10px 20px', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}>
+        <button type="submit" className="btn-action" style={{ borderRadius: '2rem', display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem 1.5rem' }}>
           <Send size={16} /> Send
         </button>
       </form>

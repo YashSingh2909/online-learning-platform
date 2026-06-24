@@ -6,7 +6,8 @@ import LockedContent from '../components/LockedContent';
 import CourseChat from '../components/chat/CourseChat';
 import DiscussionBoard from '../components/discussion/DiscussionBoard';
 import LiveClassList from '../components/live/LiveClassList';
-
+import MockPaymentModal from '../components/payment/MockPaymentModal';
+import AIChatbot from '../components/chat/AIChatbot';
 
 export default function CourseDetail() {
 
@@ -18,6 +19,7 @@ export default function CourseDetail() {
   const [loading, setLoading] = useState(true);
   const [selectedLesson, setSelectedLesson] = useState(0);
   const [activeTab, setActiveTab] = useState('lessons');
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
 
   const [locked, setLocked] = useState(false);
   const [lockedMessage, setLockedMessage] = useState('');
@@ -31,9 +33,6 @@ export default function CourseDetail() {
     try {
       const courseRes = await courseAPI.getCourseById(id);
       setCourse(courseRes.data.data);
-
-
-
 
       if (user) {
         try {
@@ -62,160 +61,192 @@ export default function CourseDetail() {
       return;
     }
 
-    try {
-      if (course.price > 0) {
-        const confirmPayment = window.confirm(`This is a paid course (${(course.price / 100).toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}). Would you like to simulate a successful payment to enroll?`);
-        if (!confirmPayment) return;
-        
-        await paymentAPI.createPaymentOrder({ courseId: id });
-        // Auto-enroll after simulating payment order
+    if (course.price > 0) {
+      setIsPaymentModalOpen(true);
+    } else {
+      try {
         await enrollmentAPI.enrollCourse({ courseId: id });
         await fetchCourseAndEnrollment();
-      } else {
-        await enrollmentAPI.enrollCourse({ courseId: id });
-        await fetchCourseAndEnrollment();
+      } catch (error) {
+        alert('Error enrolling in course');
+        console.error(error);
       }
+    }
+  };
+
+  const handlePaymentSuccess = async () => {
+    try {
+      await paymentAPI.createPaymentOrder({ courseId: id });
+      await enrollmentAPI.enrollCourse({ courseId: id });
+      setIsPaymentModalOpen(false);
+      await fetchCourseAndEnrollment();
     } catch (error) {
-      alert('Error enrolling in course');
+      alert('Error during checkout');
       console.error(error);
     }
   };
 
-  if (loading) return <div className="flex items-center justify-center min-h-screen bg-slate-950 text-slate-100">Loading...</div>;
+  if (loading) return <div className="dashboard-page flex items-center justify-center text-slate-100">Loading...</div>;
 
   if (locked) {
     return (
-      <LockedContent
-        title="Course locked"
-        description={lockedMessage || 'Enroll to access this course.'}
-        ctaLabel="Enroll to access"
-        ctaTo="/courses"
-      />
+      <div className="dashboard-page">
+        <LockedContent
+          title="Course locked"
+          description={lockedMessage || 'Enroll to access this course.'}
+          ctaLabel="Enroll to access"
+          ctaTo="/courses"
+        />
+      </div>
     );
   }
 
-  if (!course) return <div className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center">Course not found</div>;
+  if (!course) return <div className="dashboard-page flex items-center justify-center text-slate-100">Course not found</div>;
 
 
   const isEnrolled = !!enrollment;
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100">
-      <div className="container mx-auto px-6 py-8">
+    <div className="dashboard-page">
+      <div className="dashboard-bg">
+        <div className="dashboard-orb dashboard-orb-1"></div>
+        <div className="dashboard-orb dashboard-orb-2"></div>
+      </div>
+
+      <div className="dashboard-container">
         <button
           onClick={() => navigate(-1)}
-          className="mb-8 inline-flex rounded-full border border-slate-700 bg-slate-900/80 px-5 py-3 text-sm text-slate-200 transition hover:border-cyan-500 hover:text-white"
+          className="btn-action"
+          style={{ marginBottom: '2rem' }}
         >
           ← Back to courses
         </button>
 
-        <div className="grid gap-8 lg:grid-cols-[1.6fr_0.9fr]">
-          <section className="rounded-[2rem] bg-white/95 p-8 shadow-2xl shadow-slate-950/10 ring-1 ring-slate-900/5">
-            <div className="relative overflow-hidden rounded-[1.75rem] bg-slate-950 text-slate-100 shadow-xl">
-              <img src={course.thumbnail} alt={course.title} className="h-96 w-full object-cover opacity-90" />
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-transparent to-transparent" />
-              <div className="absolute bottom-0 left-0 right-0 p-8">
-                <span className="badge-pill">{course.category}</span>
-                <h1 className="mt-4 text-4xl font-semibold text-white">{course.title}</h1>
-                <p className="mt-3 max-w-2xl text-slate-300">{course.description}</p>
+        <div className="dashboard-main-grid">
+          <div className="dashboard-left">
+            <section className="dashboard-section" style={{ padding: '0', overflow: 'hidden' }}>
+              <div className="relative overflow-hidden bg-slate-950 text-slate-100 shadow-xl">
+                <img src={course.thumbnail} alt={course.title} className="h-96 w-full object-cover opacity-90" />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-transparent to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-8">
+                  <span className="badge-pill" style={{ background: 'var(--accent)', color: '#fff', padding: '4px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: 'bold' }}>{course.category}</span>
+                  <h1 className="mt-4 text-4xl font-semibold text-white" style={{ marginTop: '1rem', marginBottom: '0.5rem' }}>{course.title}</h1>
+                  <p className="mt-3 max-w-2xl text-slate-300">{course.description}</p>
+                </div>
               </div>
-            </div>
 
-            <div className="mt-10 grid gap-6 lg:grid-cols-3">
-              <div className="rounded-[1.5rem] bg-slate-950/95 p-6 text-slate-100 shadow-lg shadow-slate-950/10">
-                <p className="text-sm uppercase tracking-[0.2em] text-cyan-200/80">Rating</p>
-                <p className="mt-4 text-3xl font-semibold">★ {course.rating}</p>
-                <p className="mt-2 text-slate-400">{course.students} students enrolled</p>
-              </div>
-              <div className="rounded-[1.5rem] bg-slate-950/95 p-6 text-slate-100 shadow-lg shadow-slate-950/10">
-                <p className="text-sm uppercase tracking-[0.2em] text-cyan-200/80">Duration</p>
-                <p className="mt-4 text-3xl font-semibold">{course.duration}</p>
-                <p className="mt-2 text-slate-400">Complete at your own pace</p>
-              </div>
-              <div className="rounded-[1.5rem] bg-slate-950/95 p-6 text-slate-100 shadow-lg shadow-slate-950/10">
-                <p className="text-sm uppercase tracking-[0.2em] text-cyan-200/80">Price</p>
-                <p className="mt-4 text-3xl font-semibold">₹{course.price}</p>
-                <p className="mt-2 text-slate-400">Secure payment ready</p>
-              </div>
-            </div>
-
-            {isEnrolled && (
-              <div className="mt-10 rounded-[1.75rem] border border-slate-200/60 bg-slate-100 p-6 text-slate-950 shadow-sm">
-                <div style={{ display: 'flex', gap: '15px', borderBottom: '1px solid #ddd', paddingBottom: '10px', marginBottom: '20px' }}>
-                  <button onClick={() => setActiveTab('lessons')} style={{ fontWeight: activeTab === 'lessons' ? 'bold' : 'normal', color: activeTab === 'lessons' ? '#4F46E5' : '#666', background: 'none', border: 'none', cursor: 'pointer', padding: '5px 10px' }}>Lessons</button>
-                  <button onClick={() => setActiveTab('live')} style={{ fontWeight: activeTab === 'live' ? 'bold' : 'normal', color: activeTab === 'live' ? '#4F46E5' : '#666', background: 'none', border: 'none', cursor: 'pointer', padding: '5px 10px' }}>Live Classes</button>
-                  <button onClick={() => setActiveTab('discussions')} style={{ fontWeight: activeTab === 'discussions' ? 'bold' : 'normal', color: activeTab === 'discussions' ? '#4F46E5' : '#666', background: 'none', border: 'none', cursor: 'pointer', padding: '5px 10px' }}>Discussions</button>
-                  <button onClick={() => setActiveTab('chat')} style={{ fontWeight: activeTab === 'chat' ? 'bold' : 'normal', color: activeTab === 'chat' ? '#4F46E5' : '#666', background: 'none', border: 'none', cursor: 'pointer', padding: '5px 10px' }}>Chat Room</button>
+              <div style={{ padding: '2rem' }}>
+                <div className="dashboard-stats" style={{ marginBottom: '2rem' }}>
+                  <div className="stat-card">
+                    <p className="stat-label">Rating</p>
+                    <p className="stat-value" style={{ fontSize: '1.5rem' }}>★ {course.rating}</p>
+                    <p className="stat-label" style={{ marginTop: '0.5rem' }}>{course.students} students enrolled</p>
+                  </div>
+                  <div className="stat-card">
+                    <p className="stat-label">Duration</p>
+                    <p className="stat-value" style={{ fontSize: '1.5rem' }}>{course.duration}</p>
+                    <p className="stat-label" style={{ marginTop: '0.5rem' }}>Complete at your own pace</p>
+                  </div>
+                  <div className="stat-card">
+                    <p className="stat-label">Price</p>
+                    <p className="stat-value" style={{ fontSize: '1.5rem' }}>₹{course.price}</p>
+                    <p className="stat-label" style={{ marginTop: '0.5rem' }}>Secure payment ready</p>
+                  </div>
                 </div>
 
-                {activeTab === 'lessons' && (
-                  <div>
-                    <h3 className="text-2xl font-semibold">Course Content</h3>
-                    <p className="mt-3 text-sm text-slate-600">Select a lesson to continue your learning.</p>
-                    <div className="mt-6 space-y-3">
-                      {course.lessons.map((lesson, index) => (
-                        <button
-                          key={index}
-                          onClick={() => setSelectedLesson(index)}
-                          className={`w-full rounded-3xl border px-5 py-4 text-left transition ${selectedLesson === index ? 'border-cyan-500 bg-cyan-50' : 'border-slate-200 bg-white hover:border-cyan-300'}`}
-                        >
-                          <p className="font-semibold">{lesson.title}</p>
-                          <p className="mt-1 text-sm text-slate-500">{lesson.duration}</p>
-                        </button>
-                      ))}
+                {isEnrolled && (
+                  <div style={{ marginTop: '2rem' }}>
+                    <div style={{ display: 'flex', gap: '1rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '1rem', marginBottom: '1.5rem', overflowX: 'auto' }}>
+                      <button onClick={() => setActiveTab('lessons')} className="btn-action" style={{ background: activeTab === 'lessons' ? 'var(--accent)' : 'transparent', color: activeTab === 'lessons' ? '#fff' : 'var(--text-secondary)', border: activeTab === 'lessons' ? 'none' : '1px solid rgba(255,255,255,0.2)' }}>Lessons</button>
+                      <button onClick={() => setActiveTab('live')} className="btn-action" style={{ background: activeTab === 'live' ? 'var(--accent)' : 'transparent', color: activeTab === 'live' ? '#fff' : 'var(--text-secondary)', border: activeTab === 'live' ? 'none' : '1px solid rgba(255,255,255,0.2)' }}>Live Classes</button>
+                      <button onClick={() => setActiveTab('discussions')} className="btn-action" style={{ background: activeTab === 'discussions' ? 'var(--accent)' : 'transparent', color: activeTab === 'discussions' ? '#fff' : 'var(--text-secondary)', border: activeTab === 'discussions' ? 'none' : '1px solid rgba(255,255,255,0.2)' }}>Discussions</button>
+                      <button onClick={() => setActiveTab('chat')} className="btn-action" style={{ background: activeTab === 'chat' ? 'var(--accent)' : 'transparent', color: activeTab === 'chat' ? '#fff' : 'var(--text-secondary)', border: activeTab === 'chat' ? 'none' : '1px solid rgba(255,255,255,0.2)' }}>Chat Room</button>
+                      <button onClick={() => setActiveTab('ai-assistant')} className="btn-action" style={{ background: activeTab === 'ai-assistant' ? 'var(--accent)' : 'transparent', color: activeTab === 'ai-assistant' ? '#fff' : 'var(--text-secondary)', border: activeTab === 'ai-assistant' ? 'none' : '1px solid rgba(255,255,255,0.2)' }}>AI Assistant ✨</button>
                     </div>
+
+                    {activeTab === 'lessons' && (
+                      <div>
+                        <h3 className="dashboard-section-title">Course Content</h3>
+                        <p className="dashboard-section-desc">Select a lesson to continue your learning.</p>
+                        <div style={{ marginTop: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                          {course.lessons.map((lesson, index) => (
+                            <button
+                              key={index}
+                              onClick={() => setSelectedLesson(index)}
+                              style={{
+                                width: '100%', borderRadius: '1rem', padding: '1rem 1.5rem', textAlign: 'left',
+                                background: selectedLesson === index ? 'rgba(79, 70, 229, 0.1)' : 'var(--bg-card)',
+                                border: `1px solid ${selectedLesson === index ? 'var(--accent)' : 'rgba(255,255,255,0.05)'}`,
+                                transition: 'all 0.2s', cursor: 'pointer'
+                              }}
+                            >
+                              <p style={{ fontWeight: '600', color: selectedLesson === index ? 'var(--accent)' : 'var(--text-primary)' }}>{lesson.title}</p>
+                              <p style={{ marginTop: '0.25rem', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>{lesson.duration}</p>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {activeTab === 'live' && <LiveClassList courseId={course._id} />}
+                    {activeTab === 'discussions' && <DiscussionBoard courseId={course._id} />}
+                    {activeTab === 'chat' && <CourseChat courseId={course._id} />}
+                    {activeTab === 'ai-assistant' && <AIChatbot courseId={course._id} courseTitle={course.title} />}
                   </div>
                 )}
-                
-                {activeTab === 'live' && <LiveClassList courseId={course._id} />}
-                {activeTab === 'discussions' && <DiscussionBoard courseId={course._id} />}
-                {activeTab === 'chat' && <CourseChat courseId={course._id} />}
               </div>
-            )}
-          </section>
+            </section>
+          </div>
 
-          <aside className="space-y-6">
-            <div className="rounded-[2rem] bg-white/95 p-8 shadow-2xl shadow-slate-950/10 ring-1 ring-slate-900/5">
-              <p className="text-sm uppercase tracking-[0.2em] text-slate-400">Instructor</p>
-              <h2 className="mt-3 text-2xl font-semibold text-slate-950">{course.instructor?.name}</h2>
-              <p className="mt-2 text-slate-600">{course.instructor?.email}</p>
-              <div className="mt-6 rounded-3xl bg-slate-950 px-5 py-6 text-slate-100">
-                <p className="text-sm text-cyan-200 uppercase tracking-[0.2em]">Ready to learn?</p>
-                <p className="mt-3 text-lg font-semibold">{isEnrolled ? 'Continue your progress' : 'Enroll now and start today'}</p>
-              </div>
-            </div>
+          <aside className="dashboard-right">
+            <div className="sidebar-card">
+              <p className="sidebar-label">Instructor</p>
+              <h3 className="sidebar-title">{course.instructor?.name}</h3>
+              <p className="sidebar-text">{course.instructor?.email}</p>
+              
+              <div style={{ marginTop: '2rem', paddingTop: '2rem', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+                <p className="sidebar-label">Ready to learn?</p>
+                <p className="sidebar-text" style={{ marginBottom: '1.5rem', color: '#fff' }}>{isEnrolled ? 'Continue your progress' : 'Enroll now and start today'}</p>
 
-            <div className="rounded-[2rem] bg-slate-900/95 p-8 text-slate-100 shadow-2xl shadow-slate-950/15 ring-1 ring-white/10">
-              {isEnrolled ? (
-                <div className="space-y-3">
+                {isEnrolled ? (
+                  <div>
+                    <button
+                      onClick={() => {
+                        const firstLesson = course?.lessons?.[0];
+                        if (!firstLesson) return;
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }}
+                      className="btn-action"
+                      style={{ width: '100%' }}
+                    >
+                      Continue Learning
+                    </button>
+                    <p className="sidebar-text" style={{ marginTop: '1rem', textAlign: 'center', fontSize: '0.8rem' }}>
+                      Select a lesson from the course content section above.
+                    </p>
+                  </div>
+                ) : (
                   <button
-                    onClick={() => {
-                      // Lesson selection happens in this page.
-                      const firstLesson = course?.lessons?.[0];
-                      if (!firstLesson) return;
-                      window.scrollTo({ top: 0, behavior: 'smooth' });
-                    }}
-                    className="primary-btn w-full"
+                    onClick={handleEnroll}
+                    className="btn-action"
+                    style={{ width: '100%' }}
                   >
-                    Continue Learning
+                    {course.price > 0 ? 'Enroll Now' : 'Join for Free'}
                   </button>
-                  <p className="text-sm text-slate-400">
-                    Select a lesson from the course content section above.
-                  </p>
-                </div>
-              ) : (
-                <button
-                  onClick={handleEnroll}
-                  className="primary-btn w-full"
-                >
-                  {course.price > 0 ? 'Enroll Now' : 'Join for Free'}
-                </button>
-              )}
-              <p className="mt-4 text-sm text-slate-400">Secure checkout and course enrollment with trusted support.</p>
+                )}
+                <p className="sidebar-text" style={{ marginTop: '1rem', textAlign: 'center', fontSize: '0.8rem' }}>Secure checkout and course enrollment with trusted support.</p>
+              </div>
             </div>
           </aside>
         </div>
       </div>
+      <MockPaymentModal
+        isOpen={isPaymentModalOpen}
+        onClose={() => setIsPaymentModalOpen(false)}
+        onSuccess={handlePaymentSuccess}
+        courseTitle={course.title}
+        amount={course.price}
+      />
     </div>
   );
 }

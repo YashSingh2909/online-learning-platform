@@ -139,3 +139,7 @@ export const discussionAPI = {
   addReply: (courseId, discussionId, data) => axiosInstance.post(`/courses/${courseId}/discussions/${discussionId}/replies`, data),
 };
 
+export const ragAPI = {
+  chat: (courseId, message) => axiosInstance.post(`/rag/chat`, { courseId, message }),
+};
+

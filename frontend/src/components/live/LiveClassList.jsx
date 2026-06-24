@@ -49,62 +49,64 @@ const LiveClassList = ({ courseId }) => {
   const isInstructor = user?.role === 'instructor' || user?.role === 'admin';
 
   return (
-    <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-        <h2>Live Classes</h2>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <h2 className="dashboard-section-title">Live Classes</h2>
         {isInstructor && (
-          <button onClick={() => setShowForm(!showForm)} style={{ background: '#4F46E5', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}>
+          <button onClick={() => setShowForm(!showForm)} className="btn-action" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <Plus size={16} /> Schedule Class
           </button>
         )}
       </div>
 
       {showForm && isInstructor && (
-        <form onSubmit={handleSubmit} style={{ background: '#F9FAFB', padding: '20px', borderRadius: '8px', marginBottom: '20px', display: 'flex', flexDirection: 'column', gap: '15px' }}>
-          <input type="text" placeholder="Topic" value={formData.topic} onChange={e => setFormData({...formData, topic: e.target.value})} style={{ padding: '10px', borderRadius: '4px', border: '1px solid #ddd' }} required />
-          <div style={{ display: 'flex', gap: '15px' }}>
-            <input type="datetime-local" placeholder="Start Time" value={formData.startTime} onChange={e => setFormData({...formData, startTime: e.target.value})} style={{ padding: '10px', borderRadius: '4px', border: '1px solid #ddd', flex: 1 }} required />
-            <input type="number" placeholder="Duration (mins)" value={formData.duration} onChange={e => setFormData({...formData, duration: e.target.value})} style={{ padding: '10px', borderRadius: '4px', border: '1px solid #ddd', flex: 1 }} required />
+        <form onSubmit={handleSubmit} style={{ background: 'var(--bg-card)', padding: '1.5rem', borderRadius: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem', border: '1px solid rgba(255,255,255,0.05)' }}>
+          <input type="text" placeholder="Topic" value={formData.topic} onChange={e => setFormData({...formData, topic: e.target.value})} style={{ padding: '1rem', borderRadius: '0.75rem', background: 'var(--bg-primary)', border: '1px solid rgba(255,255,255,0.1)', color: 'var(--text-primary)', outline: 'none' }} required />
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
+            <input type="datetime-local" placeholder="Start Time" value={formData.startTime} onChange={e => setFormData({...formData, startTime: e.target.value})} style={{ padding: '1rem', borderRadius: '0.75rem', background: 'var(--bg-primary)', border: '1px solid rgba(255,255,255,0.1)', color: 'var(--text-primary)', outline: 'none', flex: 1, minWidth: '200px' }} required />
+            <input type="number" placeholder="Duration (mins)" value={formData.duration} onChange={e => setFormData({...formData, duration: e.target.value})} style={{ padding: '1rem', borderRadius: '0.75rem', background: 'var(--bg-primary)', border: '1px solid rgba(255,255,255,0.1)', color: 'var(--text-primary)', outline: 'none', flex: 1, minWidth: '200px' }} required />
           </div>
-          <input type="url" placeholder="Meeting Link (e.g. Zoom URL)" value={formData.meetingLink} onChange={e => setFormData({...formData, meetingLink: e.target.value})} style={{ padding: '10px', borderRadius: '4px', border: '1px solid #ddd' }} required />
-          <div style={{ display: 'flex', gap: '10px' }}>
-            <button type="submit" style={{ background: '#4F46E5', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: '4px', cursor: 'pointer' }}>Schedule</button>
-            <button type="button" onClick={() => setShowForm(false)} style={{ background: 'transparent', border: '1px solid #ddd', padding: '8px 16px', borderRadius: '4px', cursor: 'pointer' }}>Cancel</button>
+          <input type="url" placeholder="Meeting Link (e.g. Zoom URL)" value={formData.meetingLink} onChange={e => setFormData({...formData, meetingLink: e.target.value})} style={{ padding: '1rem', borderRadius: '0.75rem', background: 'var(--bg-primary)', border: '1px solid rgba(255,255,255,0.1)', color: 'var(--text-primary)', outline: 'none' }} required />
+          <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
+            <button type="submit" className="btn-action">Schedule</button>
+            <button type="button" onClick={() => setShowForm(false)} className="btn-action" style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.2)' }}>Cancel</button>
           </div>
         </form>
       )}
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-        {classes.length === 0 ? <p>No live classes scheduled.</p> : classes.map(c => (
-          <div key={c._id} style={{ border: '1px solid #eee', borderRadius: '8px', padding: '20px', background: '#fff' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        {classes.length === 0 ? <p style={{ color: 'var(--text-secondary)' }}>No live classes scheduled.</p> : classes.map(c => (
+          <div key={c._id} style={{ background: 'var(--bg-card)', padding: '1.5rem', borderRadius: '1rem', border: '1px solid rgba(255,255,255,0.05)', borderLeft: '4px solid var(--accent)', transition: 'all 0.2s' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
               <div>
-                <h3 style={{ margin: '0 0 10px 0', display: 'flex', alignItems: 'center', gap: '8px' }}><Video color="#4F46E5" /> {c.topic}</h3>
-                <p style={{ margin: '0 0 5px 0', color: '#666', display: 'flex', alignItems: 'center', gap: '5px' }}><Calendar size={14} /> {new Date(c.startTime).toLocaleString()}</p>
-                <p style={{ margin: '0', color: '#666', display: 'flex', alignItems: 'center', gap: '5px' }}><Clock size={14} /> {c.duration} mins</p>
+                <h3 className="dashboard-section-title" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}><Video color="var(--accent)" size={20} /> {c.topic}</h3>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}><Calendar size={14} /> {new Date(c.startTime).toLocaleString()}</p>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Clock size={14} /> {c.duration} mins</p>
               </div>
               <div>
                 <span style={{ 
-                  background: c.status === 'live' ? '#DC2626' : c.status === 'completed' ? '#10B981' : '#F59E0B',
-                  color: '#fff', padding: '4px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold'
+                  background: c.status === 'live' ? 'rgba(239, 68, 68, 0.2)' : c.status === 'completed' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(245, 158, 11, 0.2)',
+                  color: c.status === 'live' ? '#ef4444' : c.status === 'completed' ? '#10b981' : '#f59e0b',
+                  border: `1px solid ${c.status === 'live' ? 'rgba(239, 68, 68, 0.3)' : c.status === 'completed' ? 'rgba(16, 185, 129, 0.3)' : 'rgba(245, 158, 11, 0.3)'}`,
+                  padding: '4px 12px', borderRadius: '20px', fontSize: '0.75rem', fontWeight: 'bold', textTransform: 'uppercase'
                 }}>
-                  {c.status.toUpperCase()}
+                  {c.status}
                 </span>
               </div>
             </div>
             
-            <div style={{ marginTop: '15px', display: 'flex', gap: '10px' }}>
+            <div style={{ marginTop: '1.25rem', display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
               {c.status !== 'completed' && (
-                <a href={c.meetingLink} target="_blank" rel="noreferrer" style={{ display: 'inline-block', background: '#4F46E5', color: '#fff', textDecoration: 'none', padding: '8px 16px', borderRadius: '4px', fontSize: '14px' }}>
+                <a href={c.meetingLink} target="_blank" rel="noreferrer" className="btn-action" style={{ textDecoration: 'none' }}>
                   Join Meeting
                 </a>
               )}
               
               {isInstructor && c.status === 'scheduled' && (
-                <button onClick={() => updateStatus(c._id, 'live')} style={{ background: '#DC2626', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: '4px', cursor: 'pointer', fontSize: '14px' }}>Mark Live</button>
+                <button onClick={() => updateStatus(c._id, 'live')} className="btn-action" style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.3)' }}>Mark Live</button>
               )}
               {isInstructor && c.status === 'live' && (
-                <button onClick={() => updateStatus(c._id, 'completed')} style={{ background: '#10B981', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: '4px', cursor: 'pointer', fontSize: '14px' }}>End Class</button>
+                <button onClick={() => updateStatus(c._id, 'completed')} className="btn-action" style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', border: '1px solid rgba(16, 185, 129, 0.3)' }}>End Class</button>
               )}
             </div>
           </div>

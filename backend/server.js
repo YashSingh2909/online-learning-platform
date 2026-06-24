@@ -18,6 +18,7 @@ import notificationRoutes from './routes/notificationRoutes.js';
 import certificateRoutes from './routes/certificateRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import uploadRoutes from './routes/uploadRoutes.js';
+import ragRoutes from './routes/ragRoutes.js';
 import { seedDemoData } from './seed/demoSeed.js';
 
 
@@ -82,6 +83,7 @@ const startServer = async () => {
   app.use('/api/notifications', notificationRoutes);
   app.use('/api/certificates', certificateRoutes);
   app.use('/api/admin', adminRoutes);
+  app.use('/api/rag', ragRoutes);
 
   // Health check
   app.get('/api/health', (req, res) => {
