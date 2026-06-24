@@ -200,7 +200,6 @@ After running seed data:
 |------|-------|----------|
 | Student | john@example.com | password123 |
 | Instructor | alice@example.com | password123 |
-| Admin | admin@example.com | password123 |
 
 ## 📚 API Documentation
 
