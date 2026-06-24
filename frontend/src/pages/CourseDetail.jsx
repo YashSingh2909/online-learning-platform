@@ -64,8 +64,13 @@ export default function CourseDetail() {
 
     try {
       if (course.price > 0) {
+        const confirmPayment = window.confirm(`This is a paid course (${(course.price / 100).toLocaleString('en-IN', { style: 'currency', currency: 'INR' })}). Would you like to simulate a successful payment to enroll?`);
+        if (!confirmPayment) return;
+        
         await paymentAPI.createPaymentOrder({ courseId: id });
-        alert('Payment integration would be implemented here');
+        // Auto-enroll after simulating payment order
+        await enrollmentAPI.enrollCourse({ courseId: id });
+        await fetchCourseAndEnrollment();
       } else {
         await enrollmentAPI.enrollCourse({ courseId: id });
         await fetchCourseAndEnrollment();
