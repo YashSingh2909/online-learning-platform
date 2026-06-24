@@ -271,13 +271,18 @@ export const gradeSubmission = async (req, res) => {
     await assignment.save();
 
     // Create notification for student
-    await Notification.create({
+    const notification = await Notification.create({
       recipient: submission.student,
       title: 'Assignment Graded',
       message: `Your assignment "${assignment.title}" has been graded. Score: ${score}/${assignment.totalPoints}`,
       type: 'grade',
       relatedAssignment: assignment._id,
     });
+
+    const io = req.app.get('io');
+    if (io) {
+      io.to(`user_${submission.student.toString()}`).emit('new_notification', notification);
+    }
 
     res.status(200).json({ success: true, data: assignment });
   } catch (error) {

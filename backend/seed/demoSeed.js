@@ -55,12 +55,7 @@ export const seedDemoData = async () => {
     },
   ]);
 
-  const admin = await User.create({
-    name: 'Admin User',
-    email: 'admin@example.com',
-    password: 'password123',
-    role: 'admin',
-  });
+  const admin = await User.findOne({ email: 'admin@example.com' });
 
   const courses = await Course.create([
     {

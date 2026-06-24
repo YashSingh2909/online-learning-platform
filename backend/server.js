@@ -3,7 +3,9 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
 import connectDB from './config/database.js';
-
+import http from 'http';
+import { Server } from 'socket.io';
+import Message from './models/Message.js';
 
 // Import routes
 import authRoutes from './routes/authRoutes.js';
@@ -101,7 +103,49 @@ const startServer = async () => {
   });
 
   const PORT = process.env.PORT || 5000;
-  const server = app.listen(PORT, () => {
+  const server = http.createServer(app);
+  
+  const io = new Server(server, {
+    cors: {
+      origin: allowedOrigins,
+      methods: ["GET", "POST", "PUT", "DELETE"],
+      credentials: true
+    }
+  });
+  
+  app.set('io', io);
+  
+  io.on('connection', (socket) => {
+    console.log('User connected:', socket.id);
+    
+    socket.on('join_course', (courseId) => {
+      socket.join(courseId);
+    });
+    
+    socket.on('send_message', async (data) => {
+      try {
+        const message = await Message.create({
+          course: data.courseId,
+          sender: data.senderId,
+          content: data.content
+        });
+        await message.populate('sender', 'name profileImage');
+        io.to(data.courseId).emit('receive_message', message);
+      } catch (err) {
+        console.error('Error saving message:', err);
+      }
+    });
+
+    socket.on('join_user', (userId) => {
+      socket.join(`user_${userId}`);
+    });
+
+    socket.on('disconnect', () => {
+      console.log('User disconnected:', socket.id);
+    });
+  });
+
+  server.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
   });
 
@@ -115,4 +159,3 @@ const startServer = async () => {
 };
 
 startServer();
-

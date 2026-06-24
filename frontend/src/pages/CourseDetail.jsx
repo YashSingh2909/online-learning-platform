@@ -3,6 +3,9 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { courseAPI, enrollmentAPI, paymentAPI } from '../api/apiService';
 import LockedContent from '../components/LockedContent';
+import CourseChat from '../components/chat/CourseChat';
+import DiscussionBoard from '../components/discussion/DiscussionBoard';
+import LiveClassList from '../components/live/LiveClassList';
 
 
 export default function CourseDetail() {
@@ -14,6 +17,8 @@ export default function CourseDetail() {
   const [enrollment, setEnrollment] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedLesson, setSelectedLesson] = useState(0);
+  const [activeTab, setActiveTab] = useState('lessons');
+
   const [locked, setLocked] = useState(false);
   const [lockedMessage, setLockedMessage] = useState('');
 
@@ -131,20 +136,35 @@ export default function CourseDetail() {
 
             {isEnrolled && (
               <div className="mt-10 rounded-[1.75rem] border border-slate-200/60 bg-slate-100 p-6 text-slate-950 shadow-sm">
-                <h3 className="text-2xl font-semibold">Course Content</h3>
-                <p className="mt-3 text-sm text-slate-600">Select a lesson to continue your learning.</p>
-                <div className="mt-6 space-y-3">
-                  {course.lessons.map((lesson, index) => (
-                    <button
-                      key={index}
-                      onClick={() => setSelectedLesson(index)}
-                      className={`w-full rounded-3xl border px-5 py-4 text-left transition ${selectedLesson === index ? 'border-cyan-500 bg-cyan-50' : 'border-slate-200 bg-white hover:border-cyan-300'}`}
-                    >
-                      <p className="font-semibold">{lesson.title}</p>
-                      <p className="mt-1 text-sm text-slate-500">{lesson.duration}</p>
-                    </button>
-                  ))}
+                <div style={{ display: 'flex', gap: '15px', borderBottom: '1px solid #ddd', paddingBottom: '10px', marginBottom: '20px' }}>
+                  <button onClick={() => setActiveTab('lessons')} style={{ fontWeight: activeTab === 'lessons' ? 'bold' : 'normal', color: activeTab === 'lessons' ? '#4F46E5' : '#666', background: 'none', border: 'none', cursor: 'pointer', padding: '5px 10px' }}>Lessons</button>
+                  <button onClick={() => setActiveTab('live')} style={{ fontWeight: activeTab === 'live' ? 'bold' : 'normal', color: activeTab === 'live' ? '#4F46E5' : '#666', background: 'none', border: 'none', cursor: 'pointer', padding: '5px 10px' }}>Live Classes</button>
+                  <button onClick={() => setActiveTab('discussions')} style={{ fontWeight: activeTab === 'discussions' ? 'bold' : 'normal', color: activeTab === 'discussions' ? '#4F46E5' : '#666', background: 'none', border: 'none', cursor: 'pointer', padding: '5px 10px' }}>Discussions</button>
+                  <button onClick={() => setActiveTab('chat')} style={{ fontWeight: activeTab === 'chat' ? 'bold' : 'normal', color: activeTab === 'chat' ? '#4F46E5' : '#666', background: 'none', border: 'none', cursor: 'pointer', padding: '5px 10px' }}>Chat Room</button>
                 </div>
+
+                {activeTab === 'lessons' && (
+                  <div>
+                    <h3 className="text-2xl font-semibold">Course Content</h3>
+                    <p className="mt-3 text-sm text-slate-600">Select a lesson to continue your learning.</p>
+                    <div className="mt-6 space-y-3">
+                      {course.lessons.map((lesson, index) => (
+                        <button
+                          key={index}
+                          onClick={() => setSelectedLesson(index)}
+                          className={`w-full rounded-3xl border px-5 py-4 text-left transition ${selectedLesson === index ? 'border-cyan-500 bg-cyan-50' : 'border-slate-200 bg-white hover:border-cyan-300'}`}
+                        >
+                          <p className="font-semibold">{lesson.title}</p>
+                          <p className="mt-1 text-sm text-slate-500">{lesson.duration}</p>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {activeTab === 'live' && <LiveClassList courseId={course._id} />}
+                {activeTab === 'discussions' && <DiscussionBoard courseId={course._id} />}
+                {activeTab === 'chat' && <CourseChat courseId={course._id} />}
               </div>
             )}
           </section>

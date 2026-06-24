@@ -40,13 +40,18 @@ export const enrollCourse = async (req, res) => {
     await course.save();
 
     // Create notification
-    await Notification.create({
+    const notification = await Notification.create({
       recipient: req.user.id,
       title: 'Course Enrollment Successful',
       message: `You have successfully enrolled in ${course.title}`,
       type: 'enrollment',
       relatedCourse: courseId,
     });
+
+    const io = req.app.get('io');
+    if (io) {
+      io.to(`user_${req.user.id}`).emit('new_notification', notification);
+    }
 
     res.status(201).json({ success: true, data: enrollment });
   } catch (error) {
