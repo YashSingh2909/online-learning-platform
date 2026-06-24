@@ -160,9 +160,9 @@ export default function QuizDetail() {
             </div>
             <h3 className="cert-title">Quiz Completed!</h3>
             <p className="cert-course">Your Score</p>
-            <p className="stat-value" style={{ fontSize: '3rem', marginTop: '0.5rem' }}>{result.score || 0}%</p>
+            <p className="stat-value" style={{ fontSize: '3rem', marginTop: '0.5rem' }}>{result.percentage ?? result.score ?? 0}%</p>
             <p className="cert-date">
-              {result.correct || 0} / {result.total || 0} correct
+              {result.correct ?? 0} / {result.total ?? 0} correct
             </p>
             <div style={{ marginTop: '1.5rem', display: 'flex', gap: '1rem', justifyContent: 'center' }}>
               <button onClick={() => navigate('/quizzes')} className="btn-outline-alt">

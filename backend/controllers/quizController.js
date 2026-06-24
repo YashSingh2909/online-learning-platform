@@ -246,11 +246,26 @@ export const submitQuiz = async (req, res) => {
 
     const isPassed = score >= quiz.passingScore;
 
+    // Build result contract expected by UI
+    const totalQuestions = quiz.questions.length;
+    const correctCount = normalizedAnswers.reduce((acc, ans, idx) => {
+      if (ans === undefined) return acc;
+      return String(ans) === String(quiz.questions[idx].correctAnswer) ? acc + 1 : acc;
+    }, 0);
+
+    const totalPoints = quiz.totalPoints;
+    const percentage = totalPoints ? Math.round((score / totalPoints) * 100) : 0;
+
     res.status(200).json({
       success: true,
       data: {
-        score,
-        totalPoints: quiz.totalPoints,
+        // UI currently shows: result.score}% (treating as percentage)
+        // So we provide percentage via `score` for backward compatibility.
+        score: percentage,
+        percentage,
+        correct: correctCount,
+        total: totalQuestions,
+        totalPoints,
         isPassed,
         passingScore: quiz.passingScore,
       },
