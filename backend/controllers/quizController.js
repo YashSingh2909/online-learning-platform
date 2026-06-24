@@ -198,19 +198,45 @@ export const submitQuiz = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Quiz not found' });
     }
 
+    // Normalize/validate answers payload.
+    // Frontend sends answers as an object keyed by questionId:
+    //   { [questionId]: selectedOptionIndex }
+    // Backend previously assumed an array.
+    let normalizedAnswers;
+
+    if (Array.isArray(answers)) {
+      normalizedAnswers = answers;
+    } else if (answers && typeof answers === 'object') {
+      // Convert object => array in question order.
+      normalizedAnswers = quiz.questions.map((q) => {
+        const key = q._id?.toString();
+        return key && Object.prototype.hasOwnProperty.call(answers, key)
+          ? answers[key]
+          : undefined;
+      });
+    } else {
+      return res.status(400).json({ success: false, message: 'Invalid quiz answers format' });
+    }
+
     // Calculate score
     let score = 0;
-    answers.forEach((answer, index) => {
-      if (String(answer) === String(quiz.questions[index].correctAnswer)) {
-        score += Math.round(quiz.totalPoints / quiz.questions.length);
+    const perQuestionPoints = quiz.questions.length
+      ? Math.round(quiz.totalPoints / quiz.questions.length)
+      : 0;
+
+    quiz.questions.forEach((q, index) => {
+      const answer = normalizedAnswers?.[index];
+      if (answer === undefined) return;
+      if (String(answer) === String(q.correctAnswer)) {
+        score += perQuestionPoints;
       }
     });
 
-    // Create attempt record
+    // Create attempt record (store normalized array so future usage is consistent)
     const attempt = {
       student: req.user.id,
       score,
-      answers,
+      answers: normalizedAnswers,
       attemptedAt: new Date(),
       timeTaken,
     };
@@ -233,6 +259,7 @@ export const submitQuiz = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
 
 // Get quiz attempts for student
 export const getQuizAttempts = async (req, res) => {
