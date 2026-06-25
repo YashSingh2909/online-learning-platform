@@ -135,16 +135,40 @@ const startServer = async () => {
     });
     
     socket.on('send_message', async (data) => {
+      console.log('[socket] send_message received:', {
+        courseId: data?.courseId,
+        senderId: data?.senderId,
+        content: data?.content,
+      });
+
       try {
         const message = await Message.create({
           course: data.courseId,
           sender: data.senderId,
-          content: data.content
+          content: data.content,
         });
+
+        // Verify immediately what got persisted (helps debugging refresh issues)
+        const persistedCount = await Message.countDocuments({ course: data.courseId });
+        console.log('[socket] persisted messages count for course (raw):', data.courseId, persistedCount);
+
+        // Extra verification using stringified course id (helps ObjectId/string mismatch debugging)
+        const persistedCountStr = await Message.countDocuments({ course: String(data.courseId) });
+        console.log('[socket] persisted messages count for course (string):', String(data.courseId), persistedCountStr);
+
+
+
+        console.log('[socket] message saved:', {
+          _id: message._id,
+          course: message.course,
+          sender: message.sender,
+          content: message.content,
+        });
+
         await message.populate('sender', 'name profileImage');
         io.to(data.courseId).emit('receive_message', message);
       } catch (err) {
-        console.error('Error saving message:', err);
+        console.error('[socket] Error saving message:', err);
       }
     });
 

@@ -33,11 +33,18 @@ import LessonsManager from './components/instructor/LessonsManager';
 import QuizzesManager from './components/instructor/QuizzesManager';
 import AssignmentsManager from './components/instructor/AssignmentsManager';
 import InstructorAssignmentGrading from './pages/instructor/InstructorAssignmentGrading';
+import InstructorLiveClassesManager from './pages/instructor/InstructorLiveClassesManager';
+import InstructorDiscussionsManager from './pages/instructor/InstructorDiscussionsManager';
+import InstructorChatRoomManager from './pages/instructor/InstructorChatRoomManager';
+import InstructorAIAssistant from './pages/instructor/InstructorAIAssistant';
+
+
 
 
 
 
 const Page = ({ children }) => <Layout>{children}</Layout>;
+
 
 const CourseAlias = () => {
   const { id } = useParams();
@@ -254,6 +261,13 @@ function App() {
               <Route path="quizzes" element={<QuizzesManager />} />
               <Route path="assignments" element={<AssignmentsManager />} />
               <Route path="assignments/grading" element={<InstructorAssignmentGrading />} />
+
+              <Route path="live-classes" element={<InstructorLiveClassesManager />} />
+
+              <Route path="discussions" element={<InstructorDiscussionsManager />} />
+              <Route path="chat" element={<InstructorChatRoomManager />} />
+
+              <Route path="ai-assistant" element={<InstructorAIAssistant />} />
             </Route>
             <Route path=":courseId/publish" element={<LegacyInstructorCourseAlias section="lessons" />} />
             <Route path=":courseId/lessons" element={<LegacyInstructorCourseAlias section="lessons" />} />

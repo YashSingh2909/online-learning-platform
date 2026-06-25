@@ -22,6 +22,11 @@ export const SocketProvider = ({ children }) => {
 
     const newSocket = io(socketUrl, {
       withCredentials: true,
+      transports: ['websocket'],
+      reconnection: true,
+      reconnectionAttempts: 20,
+      reconnectionDelay: 500,
+      timeout: 10000,
     });
 
     setSocket(newSocket);
@@ -29,6 +34,10 @@ export const SocketProvider = ({ children }) => {
     newSocket.on('connect', () => {
       console.log('Socket connected:', newSocket.id);
       newSocket.emit('join_user', user._id || user.id);
+    });
+
+    newSocket.on('connect_error', (err) => {
+      console.error('Socket connect_error:', err?.message || err);
     });
 
     return () => {

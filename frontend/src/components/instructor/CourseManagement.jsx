@@ -44,10 +44,30 @@ export default function CourseManagement() {
     }
   };
 
-  const tabs = [
-    { to: `/instructor/course/${courseId}/lessons`, label: 'Lessons' },
-    { to: `/instructor/course/${courseId}/quizzes`, label: 'Quizzes' },
-    { to: `/instructor/course/${courseId}/assignments`, label: 'Assignments' },
+  const groupedNav = [
+    {
+      groupLabel: 'Content',
+      items: [
+        { to: `/instructor/course/${courseId}/lessons`, label: 'Lessons' },
+        { to: `/instructor/course/${courseId}/quizzes`, label: 'Quizzes' },
+        { to: `/instructor/course/${courseId}/assignments`, label: 'Assignments' },
+      ],
+    },
+    {
+      groupLabel: 'Teaching',
+      items: [{ to: `/instructor/course/${courseId}/live-classes`, label: 'Live Classes' }],
+    },
+    {
+      groupLabel: 'Engagement',
+      items: [
+        { to: `/instructor/course/${courseId}/discussions`, label: 'Discussions' },
+        { to: `/instructor/course/${courseId}/chat`, label: 'Chat Room' },
+      ],
+    },
+    {
+      groupLabel: 'AI Tools',
+      items: [{ to: `/instructor/course/${courseId}/ai-assistant`, label: 'AI Assistant' }],
+    },
   ];
 
   if (loading) {
@@ -84,15 +104,24 @@ export default function CourseManagement() {
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '1.5rem' }}>
-          {tabs.map((tab) => (
-            <NavLink
-              key={tab.to}
-              to={tab.to}
-              className={({ isActive }) => (isActive ? 'btn-action' : 'btn-outline-alt')}
-            >
-              {tab.label}
-            </NavLink>
+        <div style={{ display: 'grid', gap: '1rem', marginBottom: '1.5rem' }}>
+          {groupedNav.map((group) => (
+            <div key={group.groupLabel} style={{ display: 'grid', gap: '0.5rem' }}>
+              <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontWeight: 600 }}>
+                {group.groupLabel}
+              </div>
+              <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                {group.items.map((tab) => (
+                  <NavLink
+                    key={tab.to}
+                    to={tab.to}
+                    className={({ isActive }) => (isActive ? 'btn-action' : 'btn-outline-alt')}
+                  >
+                    {tab.label}
+                  </NavLink>
+                ))}
+              </div>
+            </div>
           ))}
         </div>
 

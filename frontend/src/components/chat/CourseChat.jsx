@@ -12,28 +12,58 @@ const CourseChat = ({ courseId }) => {
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
+    if (!courseId) {
+      console.warn('[CourseChat] fetchMessages skipped: courseId is falsy:', courseId);
+      return;
+    }
+
     const fetchMessages = async () => {
       try {
+        console.log('[CourseChat] fetchMessages for courseId:', courseId);
         const res = await chatAPI.getCourseMessages(courseId);
-        setMessages(res.data.data);
+        const data = res?.data?.data || [];
+        console.log('[CourseChat] fetched messages count:', data.length);
+        if (data[0]?._id) console.log('[CourseChat] first message id:', data[0]._id);
+        setMessages(data);
       } catch (err) {
-        console.error('Error fetching chat history:', err);
+        console.error('[CourseChat] Error fetching chat history:', err);
       }
     };
+
     fetchMessages();
   }, [courseId]);
 
+
+
+
+
   useEffect(() => {
     if (!socket) return;
-    
+
+    // Always ensure we join and then refresh history once the socket is ready.
     socket.emit('join_course', courseId);
-    
+
     const handleMessage = (message) => {
-      setMessages((prev) => [...prev, message]);
+      setMessages((prev) => {
+        // de-dupe by _id
+        const exists = prev.some((m) => m._id && message?._id && String(m._id) === String(message._id));
+        if (exists) return prev;
+        return [...prev, message];
+      });
     };
-    
+
     socket.on('receive_message', handleMessage);
-    
+
+    // Re-fetch on mount/refresh so chat history always renders correctly.
+    (async () => {
+      try {
+        const res = await chatAPI.getCourseMessages(courseId);
+        setMessages(res.data.data || []);
+      } catch (e) {
+        console.error('Error fetching chat history on socket join:', e);
+      }
+    })();
+
     return () => {
       socket.off('receive_message', handleMessage);
     };
@@ -46,13 +76,24 @@ const CourseChat = ({ courseId }) => {
   const sendMessage = (e) => {
     e.preventDefault();
     if (!input.trim() || !socket) return;
-    
+
+    if (!socket.connected) {
+      console.warn('Socket not connected yet; message not sent');
+      return;
+    }
+
+    console.log('Emitting send_message', {
+      courseId,
+      senderId: user?._id || user?.id,
+      content: input,
+    });
+
     socket.emit('send_message', {
       courseId,
-      senderId: user._id || user.id,
-      content: input
+      senderId: user?._id || user?.id,
+      content: input,
     });
-    
+
     setInput('');
   };
 
