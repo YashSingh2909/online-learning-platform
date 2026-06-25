@@ -14,10 +14,13 @@ const DiscussionBoard = ({ courseId }) => {
 
   const fetchDiscussions = async () => {
     try {
+      console.log('Fetching discussions for course:', courseId);
       const res = await discussionAPI.getDiscussions(courseId);
+      console.log('Discussions fetched:', res.data.data);
       setDiscussions(res.data.data);
     } catch (err) {
-      console.error(err);
+      console.error('Error fetching discussions:', err);
+      setDiscussions([]);
     }
   };
 
@@ -27,15 +30,21 @@ const DiscussionBoard = ({ courseId }) => {
 
   const handleCreatePost = async (e) => {
     e.preventDefault();
-    if (!title || !content) return;
+    if (!title || !content) {
+      alert('Please fill in both title and content');
+      return;
+    }
     try {
-      await discussionAPI.createDiscussion(courseId, { title, content });
+      console.log('Creating discussion:', { courseId, title, content });
+      const response = await discussionAPI.createDiscussion(courseId, { title, content });
+      console.log('Discussion created successfully:', response.data);
       setTitle('');
       setContent('');
       setShowNewPost(false);
       fetchDiscussions();
     } catch (err) {
-      console.error(err);
+      console.error('Error creating discussion:', err);
+      alert('Failed to create discussion. Please try again.');
     }
   };
 
@@ -109,11 +118,43 @@ const DiscussionBoard = ({ courseId }) => {
 
       {showNewPost && (
         <form onSubmit={handleCreatePost} style={{ background: 'var(--bg-card)', padding: '1.5rem', borderRadius: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem', border: '1px solid rgba(255,255,255,0.05)' }}>
-          <input type="text" placeholder="Title" value={title} onChange={e => setTitle(e.target.value)} style={{ padding: '1rem', borderRadius: '0.75rem', background: 'var(--bg-primary)', border: '1px solid rgba(255,255,255,0.1)', color: 'var(--text-primary)', outline: 'none' }} required />
-          <textarea rows="4" placeholder="What do you want to discuss?" value={content} onChange={e => setContent(e.target.value)} style={{ padding: '1rem', borderRadius: '0.75rem', background: 'var(--bg-primary)', border: '1px solid rgba(255,255,255,0.1)', color: 'var(--text-primary)', outline: 'none' }} required />
+          <input 
+            type="text" 
+            placeholder="Title" 
+            value={title} 
+            onChange={e => setTitle(e.target.value)} 
+            style={{ padding: '1rem', borderRadius: '0.75rem', background: 'var(--bg-primary)', border: '1px solid rgba(255,255,255,0.1)', color: 'var(--text-primary)', outline: 'none' }} 
+            required 
+          />
+          <textarea 
+            rows="4" 
+            placeholder="What do you want to discuss?" 
+            value={content} 
+            onChange={e => setContent(e.target.value)} 
+            style={{ padding: '1rem', borderRadius: '0.75rem', background: 'var(--bg-primary)', border: '1px solid rgba(255,255,255,0.1)', color: 'var(--text-primary)', outline: 'none' }} 
+            required 
+          />
           <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
-            <button type="submit" className="btn-action">Post</button>
-            <button type="button" onClick={() => setShowNewPost(false)} className="btn-action" style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.2)' }}>Cancel</button>
+            <button 
+              type="submit" 
+              className="btn-action"
+              disabled={!title || !content}
+              style={{ opacity: (!title || !content) ? 0.5 : 1 }}
+            >
+              Post
+            </button>
+            <button 
+              type="button" 
+              onClick={() => {
+                setShowNewPost(false);
+                setTitle('');
+                setContent('');
+              }} 
+              className="btn-action" 
+              style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.2)' }}
+            >
+              Cancel
+            </button>
           </div>
         </form>
       )}

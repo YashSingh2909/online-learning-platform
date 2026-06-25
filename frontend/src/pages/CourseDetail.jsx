@@ -96,8 +96,13 @@ export default function CourseDetail() {
 
   const handlePaymentSuccess = async () => {
     try {
-      await paymentAPI.createPaymentOrder({ courseId: id });
-      await enrollmentAPI.enrollCourse({ courseId: id });
+      // For mock payment, we need to create order first, then verify it
+      const orderRes = await paymentAPI.createPaymentOrder({ courseId: id });
+      await paymentAPI.verifyPayment({
+        orderId: orderRes.data.data.orderId,
+        razorpayPaymentId: 'pay_mock_' + Date.now(),
+        razorpaySignature: 'mock_signature'
+      });
       setIsPaymentModalOpen(false);
       await fetchCourseAndEnrollment();
     } catch (error) {
