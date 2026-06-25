@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 export default function Login() {
   const [formData, setFormData] = useState({ user_email: '', user_password: '' });
   const [error, setError] = useState('');
+
   const [successMessage, setSuccessMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
@@ -12,10 +13,15 @@ export default function Login() {
   const location = useLocation();
 
   useEffect(() => {
-    setFormData({ user_email: '', user_password: '' });
-    
-    // Check if user was redirected from successful registration
+    // Avoid spamming console for UI state changes
+  }, [error]);
+
+
+
+  useEffect(() => {
+    // Only reset form and show success message if coming from registration
     if (location?.state?.registrationSuccess) {
+      setFormData({ user_email: '', user_password: '' });
       setSuccessMessage('Registration successful! Please log in with your credentials.');
     }
   }, [location]);
@@ -26,16 +32,56 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    e.stopPropagation();
+    console.log('=== FORM SUBMIT START ===');
     setError('');
     setLoading(true);
 
     try {
+      if (import.meta?.env?.MODE !== 'production') {
+        console.log('Attempting login...');
+      }
+
       await login(formData.user_email, formData.user_password);
+      if (import.meta?.env?.MODE !== 'production') {
+        console.log('Login successful, navigating to dashboard');
+      }
+
+      // Reset form only on successful login
+      setFormData({ user_email: '', user_password: '' });
       navigate('/dashboard');
     } catch (err) {
-      const msg = err?.message || err?.data?.message || JSON.stringify(err);
-      setError(msg || 'Login failed');
+      console.log('=== LOGIN ERROR CAUGHT ===');
+      console.log('Error object:', err);
+      console.log('Error message:', err.message);
+      console.log('Error response:', err.response);
+      console.log('Error response data:', err.response?.data);
+      console.log('Error status:', err.status);
+
+      // Extract message from error object - handle different error structures
+      let errorMessage = 'Login failed';
+      if (err.response?.data?.message) {
+        // Hide exact backend reason to provide a user-friendly message
+        const backendMsg = String(err.response.data.message).toLowerCase();
+        if (backendMsg.includes('invalid credentials') || backendMsg.includes('invalid')) {
+          errorMessage = 'Please enter the correct email and password.';
+        } else {
+          errorMessage = err.response.data.message;
+        }
+      } else if (err.message) {
+        errorMessage = err.message;
+      } else if (typeof err === 'string') {
+        errorMessage = err;
+      } else if (err.status === 0) {
+        errorMessage = 'Unable to connect to server. Please check if the backend is running.';
+      }
+
+
+      console.log('Setting error message:', errorMessage);
+      setError(errorMessage);
+      console.log('Error state set, not navigating');
     } finally {
+      console.log('=== FORM SUBMIT END ===');
       setLoading(false);
     }
   };
@@ -79,15 +125,32 @@ export default function Login() {
                 {successMessage}
               </div>
             )}
-            
+
             {error && (
-              <div className="error-msg">
+              <div
+                className="error-msg"
+                role="alert"
+                aria-live="assertive"
+                style={{
+                  background: 'rgba(239, 68, 68, 0.10)',
+                  border: '1px solid rgba(239, 68, 68, 0.30)',
+                  borderRadius: '0.5rem',
+                  padding: '0.75rem',
+                  marginBottom: '1rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  color: '#ef4444',
+                  width: '100%',
+                  boxSizing: 'border-box',
+                }}
+              >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <circle cx="12" cy="12" r="10"/>
                   <line x1="12" y1="8" x2="12" y2="12"/>
                   <line x1="12" y1="16" x2="12.01" y2="16"/>
                 </svg>
-                {error}
+                <span style={{ fontWeight: 600 }}>{error}</span>
               </div>
             )}
 

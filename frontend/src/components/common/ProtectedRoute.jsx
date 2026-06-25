@@ -39,9 +39,10 @@ export const ProtectedRoute = ({ children, allowedRoles = [] }) => {
 };
 
 export const PublicRoute = ({ children }) => {
-  const { user, loading } = useAuth();
+  const { user } = useAuth();
 
-  if (loading) return <LoadingScreen />;
+  // Do not swap out the login/register UI just because auth is loading.
+  // This prevents the error message from disappearing during login requests.
   if (user) return <Navigate to="/dashboard" replace />;
 
   return children;

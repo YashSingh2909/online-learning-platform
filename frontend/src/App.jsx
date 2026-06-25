@@ -13,6 +13,7 @@ import CourseDetail from './pages/CourseDetail';
 import CourseLearn from './pages/CourseLearn';
 import CourseDetailLearnRedirect from './pages/CourseDetailLearnRedirect';
 import Progress from './pages/Progress';
+import ProfileEdit from './pages/ProfileEdit';
 
 import Quizzes from './pages/Quizzes';
 import Assignments from './pages/Assignments';
@@ -94,6 +95,11 @@ const Profile = () => {
   return (
     <Page>
       <div className="dashboard-page">
+        <div className="dashboard-bg">
+          <div className="dashboard-orb dashboard-orb-1"></div>
+          <div className="dashboard-orb dashboard-orb-2"></div>
+        </div>
+
         <div className="dashboard-container">
           <div className="dashboard-section">
             <div className="dashboard-section-header">
@@ -101,11 +107,47 @@ const Profile = () => {
                 <h1 className="dashboard-section-title">Profile</h1>
                 <p className="dashboard-section-desc">Your EduSphere account details.</p>
               </div>
+              <Link to="/profile/edit" className="btn-action">
+                Edit Profile
+              </Link>
             </div>
             <div className="quiz-card">
-              <p className="quiz-card-desc"><strong>Name:</strong> {user?.name}</p>
-              <p className="quiz-card-desc"><strong>Email:</strong> {user?.email}</p>
-              <p className="quiz-card-desc"><strong>Role:</strong> {user?.role}</p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
+                <div className="user-avatar" style={{ width: '64px', height: '64px', fontSize: '1.5rem' }}>
+                  {user?.name?.charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <h2 style={{ fontSize: '1.25rem', fontWeight: '600', marginBottom: '0.25rem' }}>{user?.name}</h2>
+                  <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>{user?.email}</p>
+                </div>
+              </div>
+              
+              <div style={{ display: 'grid', gap: '1rem' }}>
+                <div className="quiz-card-desc">
+                  <strong style={{ color: 'var(--text-secondary)' }}>Full Name:</strong> {user?.name}
+                </div>
+                <div className="quiz-card-desc">
+                  <strong style={{ color: 'var(--text-secondary)' }}>Email:</strong> {user?.email}
+                </div>
+                <div className="quiz-card-desc">
+                  <strong style={{ color: 'var(--text-secondary)' }}>Role:</strong> 
+                  <span style={{ textTransform: 'capitalize', marginLeft: '0.5rem' }}>{user?.role}</span>
+                </div>
+                {user?.bio && (
+                  <div className="quiz-card-desc">
+                    <strong style={{ color: 'var(--text-secondary)' }}>Bio:</strong> 
+                    <p style={{ marginTop: '0.5rem', lineHeight: '1.5' }}>{user.bio}</p>
+                  </div>
+                )}
+                <div className="quiz-card-desc">
+                  <strong style={{ color: 'var(--text-secondary)' }}>Member Since:</strong>{' '}
+                  {new Date(user?.createdAt).toLocaleDateString('en-US', { 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                  })}
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -189,6 +231,7 @@ function App() {
           <Route path="/certificates" element={<ProtectedRoute><Page><Certificate /></Page></ProtectedRoute>} />
           <Route path="/quiz/:quizId" element={<ProtectedRoute><Page><QuizDetail /></Page></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+          <Route path="/profile/edit" element={<ProtectedRoute><Page><ProfileEdit /></Page></ProtectedRoute>} />
           <Route path="/admin" element={<ProtectedRoute allowedRoles={['admin']}><Page><AdminDashboard /></Page></ProtectedRoute>} />
 
           <Route

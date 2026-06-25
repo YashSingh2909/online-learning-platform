@@ -89,6 +89,33 @@ export const getCurrentUser = async (req, res) => {
   }
 };
 
+// Update profile
+export const updateProfile = async (req, res) => {
+  try {
+    const { name, bio } = req.body;
+
+    // Build update object with only provided fields
+    const updateFields = {};
+    if (name) updateFields.name = name;
+    if (bio !== undefined) updateFields.bio = bio;
+
+    // Update user
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      updateFields,
+      { new: true, runValidators: true }
+    );
+
+    res.status(200).json({
+      success: true,
+      message: 'Profile updated successfully',
+      data: user,
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 // Logout
 export const logout = async (req, res) => {
   res.status(200).clearCookie('refreshToken').json({

@@ -11,6 +11,7 @@ export default function Register() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Initialize form state only once on mount
     setFormData({ user_name: '', user_email: '', user_password: '', role: 'student' });
   }, []);
 
@@ -79,11 +80,15 @@ export default function Register() {
 
     try {
       await register(formData.user_name, formData.user_email, formData.user_password, formData.role);
+      // Reset form only on successful registration
+      setFormData({ user_name: '', user_email: '', user_password: '', role: 'student' });
+      setPasswordStrength({ score: 0, feedback: '' });
       // Redirect to login page after successful registration
       navigate('/login', { state: { registrationSuccess: true } });
     } catch (err) {
-      const msg = err?.message || err?.data?.message || JSON.stringify(err);
-      setError(msg || 'Registration failed');
+      // Extract message from error object
+      const errorMessage = err.message || err.data?.message || 'Registration failed';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

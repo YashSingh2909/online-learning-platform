@@ -47,8 +47,11 @@ export const AuthProvider = ({ children }) => {
       setUser(userData);
       return userData;
     } catch (error) {
-      const fallbackError = error.response?.data || error.message || 'Login failed';
-      throw typeof fallbackError === 'string' ? { message: fallbackError } : fallbackError;
+      // Extract the error message from the response
+      const errorMessage = error.message || error.response?.data?.message || 'Login failed';
+      console.error('Login error:', error);
+      // Throw the error directly instead of creating a new Error object
+      throw error;
     } finally {
       setLoading(false);
     }
@@ -61,8 +64,11 @@ export const AuthProvider = ({ children }) => {
       // Don't auto-login - just return success
       return response.data;
     } catch (error) {
-      const fallbackError = error.response?.data || error.message || 'Registration failed';
-      throw typeof fallbackError === 'string' ? { message: fallbackError } : fallbackError;
+      // Extract the error message from the response
+      const errorMessage = error.message || error.response?.data?.message || 'Registration failed';
+      console.error('Registration error:', error);
+      // Throw the error directly instead of creating a new Error object
+      throw error;
     } finally {
       setLoading(false);
     }
@@ -84,7 +90,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, token, login, register, logout }}>
+    <AuthContext.Provider value={{ user, loading, token, login, register, logout, setUser }}>
       {children}
     </AuthContext.Provider>
   );
