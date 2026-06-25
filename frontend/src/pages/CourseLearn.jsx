@@ -112,8 +112,10 @@ export default function CourseLearn() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center text-slate-100">
-        Loading...
+      <div className="dashboard-page">
+        <div className="dashboard-loading">
+          <p className="loading-text">Loading...</p>
+        </div>
       </div>
     );
   }
@@ -131,8 +133,10 @@ export default function CourseLearn() {
 
   if (!course) {
     return (
-      <div className="min-h-screen flex items-center justify-center text-slate-100">
-        Course not found
+      <div className="dashboard-page">
+        <div className="dashboard-empty">
+          <h2 className="dashboard-empty-title">Course not found</h2>
+        </div>
       </div>
     );
   }
@@ -140,55 +144,51 @@ export default function CourseLearn() {
   const isEnrolled = !!enrollment;
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100">
-      <div className="container mx-auto px-6 py-6">
-        <div className="flex items-center justify-between gap-4 mb-6">
+    <div className="dashboard-page">
+      <div className="dashboard-container">
+        <div className="course-learn-header">
           <button
             onClick={() => navigate(-1)}
-            className="inline-flex items-center rounded-full border border-slate-700 bg-slate-900/80 px-5 py-2.5 text-sm text-slate-200 transition hover:border-cyan-500 hover:text-white"
+            className="btn-back"
           >
             ← Back
           </button>
-          <div className="text-right">
-            <p className="text-sm uppercase tracking-[0.15em] text-cyan-200/70">{course.category}</p>
-            <h1 className="text-2xl font-semibold">{course.title}</h1>
+          <div className="course-learn-header-info">
+            <p className="dashboard-label">{course.category}</p>
+            <h1 className="dashboard-title" style={{ fontSize: '1.5rem' }}>{course.title}</h1>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-[0.35fr_0.65fr] gap-6">
+        <div className="course-learn-grid">
           {/* Left: lesson sidebar */}
-          <aside className="rounded-2xl bg-white/5 ring-1 ring-white/10">
-            <div className="p-4 border-b border-white/10">
-              <h2 className="font-semibold">Course Content</h2>
-              <p className="text-sm text-slate-300 mt-1">Pick a lesson to start learning.</p>
+          <aside className="course-learn-sidebar">
+            <div className="course-learn-sidebar-header">
+              <h2 className="dashboard-section-title">Course Content</h2>
+              <p className="dashboard-section-desc">Pick a lesson to start learning.</p>
             </div>
 
-            <div className="max-h-[70vh] overflow-y-auto p-3">
+            <div className="course-learn-sidebar-content">
               {lessons.length === 0 ? (
-                <div className="p-4 text-sm text-slate-300 bg-white/5 rounded-xl">
+                <div className="course-learn-empty">
                   No preview lessons available.
                 </div>
               ) : (
-                <div className="space-y-2">
+                <div className="course-learn-lessons">
                   {lessons.map((lesson, index) => {
                     const active = index === safeSelectedIndex;
                     return (
                       <button
                         key={index}
                         onClick={() => setSelectedLesson(index)}
-                        className={`w-full text-left px-4 py-3 rounded-xl border transition focus:outline-none focus:ring-0 focus-visible:outline-none active:translate-y-0 active:shadow-none ${
-                          active
-                            ? 'border-cyan-400/60 bg-cyan-500/10'
-                            : 'border-white/10 bg-white/5 hover:border-cyan-400/30'
-                        }`}
+                        className={`course-learn-lesson ${active ? 'course-learn-lesson-active' : ''}`}
                       >
-                        <div className="flex items-start justify-between gap-3">
+                        <div className="course-learn-lesson-content">
                           <div>
-                            <p className={`font-medium ${active ? 'text-cyan-100' : 'text-slate-100'}`}>{lesson.title}</p>
-                            <p className="text-xs text-slate-300 mt-1">{lesson.duration || ''}</p>
+                            <p className="course-learn-lesson-title">{lesson.title}</p>
+                            <p className="course-learn-lesson-duration">{lesson.duration || ''}</p>
                           </div>
                           {index < (enrollment?.completedLessons?.length ?? 0) && (
-                            <span className="text-xs text-emerald-300">✓</span>
+                            <span className="course-learn-lesson-complete">✓</span>
                           )}
                         </div>
                       </button>
@@ -198,18 +198,20 @@ export default function CourseLearn() {
               )}
             </div>
 
-            <div className="p-4 border-t border-white/10">
+            <div className="course-learn-sidebar-footer">
               {isEnrolled ? (
                 <button
                   onClick={handleContinue}
-                  className="w-full rounded-xl bg-cyan-500 px-4 py-3 text-sm font-semibold text-slate-950 hover:bg-cyan-400 transition"
+                  className="btn-action"
+                  style={{ width: '100%' }}
                 >
                   Continue
                 </button>
               ) : (
                 <button
                   onClick={handleEnroll}
-                  className="w-full rounded-xl bg-cyan-500 px-4 py-3 text-sm font-semibold text-slate-950 hover:bg-cyan-400 transition"
+                  className="btn-action"
+                  style={{ width: '100%' }}
                 >
                   {course.price > 0 ? 'Enroll Now' : 'Join for Free'}
                 </button>
@@ -218,16 +220,16 @@ export default function CourseLearn() {
           </aside>
 
           {/* Right: video + details + sticky progress */}
-          <section className="space-y-4">
-            <div className="rounded-2xl bg-white/5 ring-1 ring-white/10 p-4">
+          <section className="course-learn-content">
+            <div className="course-learn-video-section">
               {/* Video player */}
-              <div className="rounded-xl bg-slate-950/40 overflow-hidden ring-1 ring-white/10">
+              <div className="course-learn-video-wrapper">
                 {selected?.videoUrl ? (
                   <video
                     key={safeSelectedIndex}
                     src={selected.videoUrl}
                     controls
-                    className="w-full"
+                    className="course-learn-video"
                     onEnded={async () => {
                       if (markingComplete) return;
                       if (!selected?.title) return;
@@ -251,35 +253,35 @@ export default function CourseLearn() {
                     }}
                   />
                 ) : (
-                  <div className="p-6 text-sm text-slate-300">
+                  <div className="course-learn-video-empty">
                     Video not available for this lesson.
                   </div>
                 )}
               </div>
 
               {/* Below video: title + description */}
-              <div className="mt-4">
-                <h2 className="text-xl font-semibold">{selected?.title || 'Select a lesson'}</h2>
-                <p className="text-slate-300 mt-2">{selected?.description || ' '}</p>
+              <div className="course-learn-video-info">
+                <h2 className="dashboard-section-title" style={{ fontSize: '1.25rem' }}>{selected?.title || 'Select a lesson'}</h2>
+                <p className="dashboard-section-desc">{selected?.description || ' '}</p>
                 {markingComplete && (
-                  <p className="text-sm text-slate-300 mt-3">Updating completion…</p>
+                  <p className="dashboard-section-desc" style={{ marginTop: '0.75rem' }}>Updating completion…</p>
                 )}
               </div>
             </div>
 
             {/* Sticky progress section */}
-            <div className="lg:sticky lg:top-24 rounded-2xl bg-white/5 ring-1 ring-white/10 p-4">
-              <div className="flex items-center justify-between gap-4">
+            <div className="course-learn-progress">
+              <div className="course-learn-progress-header">
                 <div>
-                  <p className="text-sm uppercase tracking-[0.15em] text-cyan-200/70">Progress</p>
-                  <p className="text-3xl font-semibold mt-1">{Math.max(0, Math.min(100, completionPercentage))}%</p>
-                  <p className="text-sm text-slate-300 mt-1">Completion over this course</p>
+                  <p className="dashboard-label">Progress</p>
+                  <p className="course-learn-progress-value">{Math.max(0, Math.min(100, completionPercentage))}%</p>
+                  <p className="dashboard-section-desc">Completion over this course</p>
                 </div>
-                <div className="text-right">
+                <div>
                   {isEnrolled ? (
                     <button
                       onClick={handleContinue}
-                      className="rounded-xl bg-cyan-500 px-4 py-2.5 text-sm font-semibold text-slate-950 hover:bg-cyan-400 transition"
+                      className="btn-action"
                       disabled={!lessons.length}
                     >
                       Continue
@@ -287,7 +289,7 @@ export default function CourseLearn() {
                   ) : (
                     <button
                       onClick={handleEnroll}
-                      className="rounded-xl bg-cyan-500 px-4 py-2.5 text-sm font-semibold text-slate-950 hover:bg-cyan-400 transition"
+                      className="btn-action"
                     >
                       Enroll
                     </button>
@@ -295,9 +297,9 @@ export default function CourseLearn() {
                 </div>
               </div>
 
-              <div className="mt-4 h-2 bg-white/10 rounded-full overflow-hidden">
+              <div className="course-learn-progress-bar">
                 <div
-                  className="h-2 bg-cyan-400"
+                  className="course-learn-progress-fill"
                   style={{ width: `${Math.max(0, Math.min(100, completionPercentage))}%` }}
                 />
               </div>

@@ -170,6 +170,10 @@ export default function InstructorLessonsManager() {
   if (loading && !course) {
     return (
       <div className="dashboard-page">
+        <div className="dashboard-bg">
+          <div className="dashboard-orb dashboard-orb-1"></div>
+          <div className="dashboard-orb dashboard-orb-2"></div>
+        </div>
         <div className="dashboard-container">
           <div className="dashboard-loading"><p className="loading-text">Loading lessons...</p></div>
         </div>
@@ -180,6 +184,10 @@ export default function InstructorLessonsManager() {
   if (error && !course) {
     return (
       <div className="dashboard-page">
+        <div className="dashboard-bg">
+          <div className="dashboard-orb dashboard-orb-1"></div>
+          <div className="dashboard-orb dashboard-orb-2"></div>
+        </div>
         <div className="dashboard-container">
           <div className="dashboard-error"><p>{error}</p></div>
         </div>
@@ -189,6 +197,11 @@ export default function InstructorLessonsManager() {
 
   return (
     <div className="dashboard-page">
+      <div className="dashboard-bg">
+        <div className="dashboard-orb dashboard-orb-1"></div>
+        <div className="dashboard-orb dashboard-orb-2"></div>
+      </div>
+
       <div className="dashboard-container">
         <div className="dashboard-header">
           <p className="dashboard-label">Instructor</p>

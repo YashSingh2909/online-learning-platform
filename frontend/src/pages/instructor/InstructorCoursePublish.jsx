@@ -65,15 +65,45 @@ const InstructorCoursePublish = () => {
   };
 
   if (loading) {
-    return <div className="dashboard-page"><div className="dashboard-loading"><p className="loading-text">Loading course...</p></div></div>;
+    return (
+      <div className="dashboard-page">
+        <div className="dashboard-bg">
+          <div className="dashboard-orb dashboard-orb-1"></div>
+          <div className="dashboard-orb dashboard-orb-2"></div>
+        </div>
+        <div className="dashboard-container">
+          <div className="dashboard-loading">
+            <p className="loading-text">Loading course...</p>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (error) {
-    return <div className="dashboard-page"><div className="dashboard-error"><p>{error}</p><button onClick={() => navigate('/instructor/courses')} className="btn-outline-alt" style={{ marginTop: '1rem' }}>← Back</button></div></div>;
+    return (
+      <div className="dashboard-page">
+        <div className="dashboard-bg">
+          <div className="dashboard-orb dashboard-orb-1"></div>
+          <div className="dashboard-orb dashboard-orb-2"></div>
+        </div>
+        <div className="dashboard-container">
+          <div className="dashboard-error">
+            <p>{error}</p>
+            <button onClick={() => navigate('/instructor/courses')} className="btn-outline-alt" style={{ marginTop: '1rem' }}>← Back</button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className="dashboard-page">
+      <div className="dashboard-bg">
+        <div className="dashboard-orb dashboard-orb-1"></div>
+        <div className="dashboard-orb dashboard-orb-2"></div>
+      </div>
+
       <div className="dashboard-container">
         <div className="dashboard-header">
           <p className="dashboard-label">Course Publishing</p>
@@ -90,7 +120,7 @@ const InstructorCoursePublish = () => {
             <button onClick={() => navigate('/instructor/courses')} className="btn-outline-alt">← Back</button>
           </div>
 
-          <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginTop: '1.5rem' }}>
+          <div className="form-actions">
             <button className="btn-action" disabled={saving || course?.isPublished} onClick={onPublish}>
               {saving ? 'Saving...' : 'Publish'}
             </button>
@@ -100,7 +130,7 @@ const InstructorCoursePublish = () => {
           </div>
 
           <div style={{ marginTop: '1.25rem' }}>
-            <p className="text-slate-400" style={{ color: 'var(--text-secondary)' }}>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.8125rem', lineHeight: '1.5' }}>
               Note: quizzes/assignments/lessons marked as free preview may still appear for students even when the course is published.
             </p>
           </div>

@@ -160,28 +160,28 @@ export default function AdminDashboard() {
               {/* Recent Users */}
               <div className="dashboard-section">
                 <h2 className="dashboard-section-title">Recent Users</h2>
-                <div style={{ overflowX: 'auto' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <div className="overflow-x-auto">
+                  <table className="w-full border-collapse">
                     <thead>
-                      <tr style={{ borderBottom: '1px solid #333' }}>
-                        <th style={{ textAlign: 'left', padding: '0.75rem', color: '#888', fontSize: '0.75rem' }}>Name</th>
-                        <th style={{ textAlign: 'left', padding: '0.75rem', color: '#888', fontSize: '0.75rem' }}>Email</th>
-                        <th style={{ textAlign: 'left', padding: '0.75rem', color: '#888', fontSize: '0.75rem' }}>Role</th>
+                      <tr className="border-b border-white/10">
+                        <th className="text-left p-3 text-xs text-slate-400">Name</th>
+                        <th className="text-left p-3 text-xs text-slate-400">Email</th>
+                        <th className="text-left p-3 text-xs text-slate-400">Role</th>
                       </tr>
                     </thead>
                     <tbody>
                       {users.map((u) => (
-                        <tr key={u._id} style={{ borderBottom: '1px solid #222' }}>
-                          <td style={{ padding: '0.75rem', color: '#fff' }}>{u.name}</td>
-                          <td style={{ padding: '0.75rem', color: '#888' }}>{u.email}</td>
-                          <td style={{ padding: '0.75rem' }}>
-                            <span style={{
-                              padding: '0.25rem 0.5rem',
-                              borderRadius: '4px',
-                              fontSize: '0.75rem',
-                              background: u.role === 'admin' ? '#06b6d4' : u.role === 'instructor' ? '#8b5cf6' : '#333',
-                              color: '#fff',
-                            }}>
+                        <tr key={u._id} className="border-b border-white/5">
+                          <td className="p-3 text-white">{u.name}</td>
+                          <td className="p-3 text-slate-400">{u.email}</td>
+                          <td className="p-3">
+                            <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${
+                              u.role === 'admin' 
+                                ? 'bg-cyan-500/20 text-cyan-200' 
+                                : u.role === 'instructor' 
+                                  ? 'bg-violet-500/20 text-violet-200' 
+                                  : 'bg-white/10 text-slate-400'
+                            }`}>
                               {u.role}
                             </span>
                           </td>
@@ -195,28 +195,26 @@ export default function AdminDashboard() {
               {/* Recent Courses */}
               <div className="dashboard-section">
                 <h2 className="dashboard-section-title">Recent Courses</h2>
-                <div style={{ overflowX: 'auto' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <div className="overflow-x-auto">
+                  <table className="w-full border-collapse">
                     <thead>
-                      <tr style={{ borderBottom: '1px solid #333' }}>
-                        <th style={{ textAlign: 'left', padding: '0.75rem', color: '#888', fontSize: '0.75rem' }}>Title</th>
-                        <th style={{ textAlign: 'left', padding: '0.75rem', color: '#888', fontSize: '0.75rem' }}>Level</th>
-                        <th style={{ textAlign: 'left', padding: '0.75rem', color: '#888', fontSize: '0.75rem' }}>Status</th>
+                      <tr className="border-b border-white/10">
+                        <th className="text-left p-3 text-xs text-slate-400">Title</th>
+                        <th className="text-left p-3 text-xs text-slate-400">Level</th>
+                        <th className="text-left p-3 text-xs text-slate-400">Status</th>
                       </tr>
                     </thead>
                     <tbody>
                       {courses.map((c) => (
-                        <tr key={c._id} style={{ borderBottom: '1px solid #222' }}>
-                          <td style={{ padding: '0.75rem', color: '#fff' }}>{c.title}</td>
-                          <td style={{ padding: '0.75rem', color: '#888' }}>{c.level}</td>
-                          <td style={{ padding: '0.75rem' }}>
-                            <span style={{
-                              padding: '0.25rem 0.5rem',
-                              borderRadius: '4px',
-                              fontSize: '0.75rem',
-                              background: c.status === 'published' ? '#10b981' : '#f59e0b',
-                              color: '#fff',
-                            }}>
+                        <tr key={c._id} className="border-b border-white/5">
+                          <td className="p-3 text-white">{c.title}</td>
+                          <td className="p-3 text-slate-400">{c.level}</td>
+                          <td className="p-3">
+                            <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${
+                              c.status === 'published' 
+                                ? 'bg-emerald-500/20 text-emerald-200' 
+                                : 'bg-amber-500/20 text-amber-200'
+                            }`}>
                               {c.status}
                             </span>
                           </td>
@@ -321,23 +319,19 @@ function AnalyticsPanel() {
 
   return (
     <div className="dashboard-section">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+      <div className="flex justify-between items-center mb-4">
         <div>
           <h2 className="dashboard-section-title">Analytics</h2>
           <p className="dashboard-section-desc">Platform-wide overview.</p>
         </div>
-        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+        <div className="flex gap-2 items-center">
           <button
             onClick={() => setUseEnhanced(!useEnhanced)}
-            style={{
-              padding: '0.5rem 1rem',
-              borderRadius: '4px',
-              border: '1px solid #333',
-              background: useEnhanced ? '#06b6d4' : 'transparent',
-              color: '#fff',
-              cursor: 'pointer',
-              fontSize: '0.875rem',
-            }}
+            className={`inline-flex items-center px-4 py-2 rounded-xl border border-white/10 transition text-sm ${
+              useEnhanced 
+                ? 'bg-cyan-500 text-slate-950 border-cyan-500' 
+                : 'bg-white/5 hover:bg-white/10 text-white'
+            }`}
           >
             {useEnhanced ? 'Enhanced' : 'Basic'}
           </button>
@@ -345,13 +339,7 @@ function AnalyticsPanel() {
             <select
               value={timeRange}
               onChange={(e) => setTimeRange(e.target.value)}
-              style={{
-                padding: '0.5rem 1rem',
-                borderRadius: '4px',
-                border: '1px solid #333',
-                background: '#1a1a1a',
-                color: '#fff',
-              }}
+              className="px-4 py-2 rounded-xl border border-white/10 bg-white/5 text-white text-sm focus:outline-none focus:border-cyan-400/40"
             >
               <option value="7">7 Days</option>
               <option value="30">30 Days</option>
@@ -363,26 +351,26 @@ function AnalyticsPanel() {
 
       {!useEnhanced ? (
         <>
-          <div className="dashboard-stats" style={{ marginTop: '1rem' }}>
+          <div className="dashboard-stats mt-4">
             <div className="stat-card">
               <p className="stat-label">Avg Progress</p>
-              <p className="stat-value" style={{ fontSize: '2rem' }}>{data?.completion?.avgProgress ?? 0}%</p>
+              <p className="stat-value text-5xl">{data?.completion?.avgProgress ?? 0}%</p>
             </div>
             <div className="stat-card">
               <p className="stat-label">Users</p>
-              <p className="stat-value" style={{ fontSize: '2rem' }}>{data?.totals?.students ?? 0}</p>
+              <p className="stat-value text-5xl">{data?.totals?.students ?? 0}</p>
             </div>
             <div className="stat-card">
               <p className="stat-label">Instructors</p>
-              <p className="stat-value" style={{ fontSize: '2rem' }}>{data?.totals?.instructors ?? 0}</p>
+              <p className="stat-value text-5xl">{data?.totals?.instructors ?? 0}</p>
             </div>
             <div className="stat-card">
               <p className="stat-label">Courses</p>
-              <p className="stat-value" style={{ fontSize: '2rem' }}>{data?.totals?.courses ?? 0}</p>
+              <p className="stat-value text-5xl">{data?.totals?.courses ?? 0}</p>
             </div>
           </div>
 
-          <div style={{ marginTop: '1rem', color: '#888', fontSize: '0.9rem' }}>
+          <div className="mt-4 text-slate-400 text-sm">
             Quizzes: {data?.totals?.quizzes ?? 0} • Assignments: {data?.totals?.assignments ?? 0}
           </div>
         </>
@@ -395,7 +383,7 @@ function AnalyticsPanel() {
 
 function EnhancedAnalyticsView({ data }) {
   return (
-    <div style={{ display: 'grid', gap: '1.5rem' }}>
+    <div className="grid gap-6">
       {/* Totals */}
       <div className="dashboard-stats">
         <div className="stat-card">
@@ -425,25 +413,25 @@ function EnhancedAnalyticsView({ data }) {
       </div>
 
       {/* Course Completion Rates */}
-      <div style={{ background: '#1a1a1a', padding: '1.5rem', borderRadius: '8px' }}>
-        <h3 style={{ color: '#fff', marginBottom: '1rem' }}>Course Completion Rates</h3>
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+      <div className="bg-white/5 p-6 rounded-xl">
+        <h3 className="text-lg font-semibold text-white mb-4">Course Completion Rates</h3>
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse">
             <thead>
-              <tr style={{ borderBottom: '1px solid #333' }}>
-                <th style={{ textAlign: 'left', padding: '0.75rem', color: '#888', fontSize: '0.75rem' }}>Course</th>
-                <th style={{ textAlign: 'left', padding: '0.75rem', color: '#888', fontSize: '0.75rem' }}>Enrollments</th>
-                <th style={{ textAlign: 'left', padding: '0.75rem', color: '#888', fontSize: '0.75rem' }}>Completed</th>
-                <th style={{ textAlign: 'left', padding: '0.75rem', color: '#888', fontSize: '0.75rem' }}>Rate</th>
+              <tr className="border-b border-white/10">
+                <th className="text-left p-3 text-xs text-slate-400">Course</th>
+                <th className="text-left p-3 text-xs text-slate-400">Enrollments</th>
+                <th className="text-left p-3 text-xs text-slate-400">Completed</th>
+                <th className="text-left p-3 text-xs text-slate-400">Rate</th>
               </tr>
             </thead>
             <tbody>
               {data?.courseMetrics?.completionRates?.map((course, idx) => (
-                <tr key={idx} style={{ borderBottom: '1px solid #222' }}>
-                  <td style={{ padding: '0.75rem', color: '#fff' }}>{course.title}</td>
-                  <td style={{ padding: '0.75rem', color: '#888' }}>{course.totalEnrollments}</td>
-                  <td style={{ padding: '0.75rem', color: '#888' }}>{course.completedEnrollments}</td>
-                  <td style={{ padding: '0.75rem', color: '#888' }}>{Math.round(course.completionRate)}%</td>
+                <tr key={idx} className="border-b border-white/5">
+                  <td className="p-3 text-white">{course.title}</td>
+                  <td className="p-3 text-slate-400">{course.totalEnrollments}</td>
+                  <td className="p-3 text-slate-400">{course.completedEnrollments}</td>
+                  <td className="p-3 text-slate-400">{Math.round(course.completionRate)}%</td>
                 </tr>
               ))}
             </tbody>
@@ -452,23 +440,23 @@ function EnhancedAnalyticsView({ data }) {
       </div>
 
       {/* Quiz Stats */}
-      <div style={{ background: '#1a1a1a', padding: '1.5rem', borderRadius: '8px' }}>
-        <h3 style={{ color: '#fff', marginBottom: '1rem' }}>Quiz Performance by Course</h3>
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+      <div className="bg-white/5 p-6 rounded-xl">
+        <h3 className="text-lg font-semibold text-white mb-4">Quiz Performance by Course</h3>
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse">
             <thead>
-              <tr style={{ borderBottom: '1px solid #333' }}>
-                <th style={{ textAlign: 'left', padding: '0.75rem', color: '#888', fontSize: '0.75rem' }}>Course</th>
-                <th style={{ textAlign: 'left', padding: '0.75rem', color: '#888', fontSize: '0.75rem' }}>Attempts</th>
-                <th style={{ textAlign: 'left', padding: '0.75rem', color: '#888', fontSize: '0.75rem' }}>Avg Score</th>
+              <tr className="border-b border-white/10">
+                <th className="text-left p-3 text-xs text-slate-400">Course</th>
+                <th className="text-left p-3 text-xs text-slate-400">Attempts</th>
+                <th className="text-left p-3 text-xs text-slate-400">Avg Score</th>
               </tr>
             </thead>
             <tbody>
               {data?.courseMetrics?.quizStats?.map((stat, idx) => (
-                <tr key={idx} style={{ borderBottom: '1px solid #222' }}>
-                  <td style={{ padding: '0.75rem', color: '#fff' }}>{stat.courseTitle}</td>
-                  <td style={{ padding: '0.75rem', color: '#888' }}>{stat.totalAttempts}</td>
-                  <td style={{ padding: '0.75rem', color: '#888' }}>{Math.round(stat.avgScore)}%</td>
+                <tr key={idx} className="border-b border-white/5">
+                  <td className="p-3 text-white">{stat.courseTitle}</td>
+                  <td className="p-3 text-slate-400">{stat.totalAttempts}</td>
+                  <td className="p-3 text-slate-400">{Math.round(stat.avgScore)}%</td>
                 </tr>
               ))}
             </tbody>
@@ -544,32 +532,18 @@ function SubmissionsPanel() {
       <h2 className="dashboard-section-title">Submissions</h2>
       <p className="dashboard-section-desc">Latest assignment submissions (read-only).</p>
 
-      <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
+      <div className="flex gap-4 mb-4 flex-wrap">
         <input
           type="text"
           placeholder="Filter by course..."
           value={courseFilter}
           onChange={(e) => setCourseFilter(e.target.value)}
-          style={{
-            padding: '0.75rem 1rem',
-            borderRadius: '8px',
-            border: '1px solid #333',
-            background: '#1a1a1a',
-            color: '#fff',
-            flex: 1,
-            minWidth: '200px',
-          }}
+          className="form-input flex-1 min-w-[200px]"
         />
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          style={{
-            padding: '0.75rem 1rem',
-            borderRadius: '8px',
-            border: '1px solid #333',
-            background: '#1a1a1a',
-            color: '#fff',
-          }}
+          className="px-4 py-3 rounded-xl border border-white/10 bg-white/5 text-white text-sm focus:outline-none focus:border-cyan-400/40"
         >
           <option value="">All Status</option>
           <option value="submitted">Submitted</option>
@@ -580,43 +554,39 @@ function SubmissionsPanel() {
           placeholder="Filter by student ID..."
           value={studentFilter}
           onChange={(e) => setStudentFilter(e.target.value)}
-          style={{
-            padding: '0.75rem 1rem',
-            borderRadius: '8px',
-            border: '1px solid #333',
-            background: '#1a1a1a',
-            color: '#fff',
-            flex: 1,
-            minWidth: '200px',
-          }}
+          className="form-input flex-1 min-w-[200px]"
         />
       </div>
 
-      <div style={{ overflowX: 'auto', marginTop: '1rem' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+      <div className="overflow-x-auto mt-4">
+        <table className="w-full border-collapse">
           <thead>
-            <tr style={{ borderBottom: '1px solid #333' }}>
-              <th style={{ textAlign: 'left', padding: '0.75rem', color: '#888', fontSize: '0.75rem' }}>Course</th>
-              <th style={{ textAlign: 'left', padding: '0.75rem', color: '#888', fontSize: '0.75rem' }}>Assignment</th>
-              <th style={{ textAlign: 'left', padding: '0.75rem', color: '#888', fontSize: '0.75rem' }}>Student</th>
-              <th style={{ textAlign: 'left', padding: '0.75rem', color: '#888', fontSize: '0.75rem' }}>Status</th>
-              <th style={{ textAlign: 'left', padding: '0.75rem', color: '#888', fontSize: '0.75rem' }}>Submitted</th>
-              <th style={{ textAlign: 'left', padding: '0.75rem', color: '#888', fontSize: '0.75rem' }}>Score</th>
+            <tr className="border-b border-white/10">
+              <th className="text-left p-3 text-xs text-slate-400">Course</th>
+              <th className="text-left p-3 text-xs text-slate-400">Assignment</th>
+              <th className="text-left p-3 text-xs text-slate-400">Student</th>
+              <th className="text-left p-3 text-xs text-slate-400">Status</th>
+              <th className="text-left p-3 text-xs text-slate-400">Submitted</th>
+              <th className="text-left p-3 text-xs text-slate-400">Score</th>
             </tr>
           </thead>
           <tbody>
             {filteredItems.map((it) => (
-              <tr key={it._id} style={{ borderBottom: '1px solid #222' }}>
-                <td style={{ padding: '0.75rem', color: '#fff' }}>{it.courseTitle || '—'}</td>
-                <td style={{ padding: '0.75rem', color: '#888' }}>{it.assignmentTitle || '—'}</td>
-                <td style={{ padding: '0.75rem', color: '#888' }}>{String(it.studentId || '')}</td>
-                <td style={{ padding: '0.75rem' }}>
-                  <span style={{ padding: '0.25rem 0.5rem', borderRadius: '4px', fontSize: '0.75rem', background: it.status === 'graded' ? '#10b981' : '#333', color: '#fff' }}>
+              <tr key={it._id} className="border-b border-white/5">
+                <td className="p-3 text-white">{it.courseTitle || '—'}</td>
+                <td className="p-3 text-slate-400">{it.assignmentTitle || '—'}</td>
+                <td className="p-3 text-slate-400">{String(it.studentId || '')}</td>
+                <td className="p-3">
+                  <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${
+                    it.status === 'graded' 
+                      ? 'bg-emerald-500/20 text-emerald-200' 
+                      : 'bg-white/10 text-slate-400'
+                  }`}>
                     {it.status}
                   </span>
                 </td>
-                <td style={{ padding: '0.75rem', color: '#888' }}>{it.submittedAt ? new Date(it.submittedAt).toLocaleString() : '—'}</td>
-                <td style={{ padding: '0.75rem', color: '#888' }}>{typeof it.score === 'number' ? it.score : '—'}</td>
+                <td className="p-3 text-slate-400">{it.submittedAt ? new Date(it.submittedAt).toLocaleString() : '—'}</td>
+                <td className="p-3 text-slate-400">{typeof it.score === 'number' ? it.score : '—'}</td>
               </tr>
             ))}
           </tbody>
@@ -1973,7 +1943,7 @@ function QuizControlCenter() {
                           padding: '0.5rem 1rem',
                           borderRadius: '4px',
                           border: 'none',
-                          background: '#dc2626',
+                          background: '#ef4444',
                           color: '#fff',
                           cursor: 'pointer',
                           fontSize: '0.75rem',
@@ -1993,19 +1963,19 @@ function QuizControlCenter() {
           <button
             onClick={() => { setShowAttempts(false); setQuizAttempts([]); }}
             style={{
-              padding: '0.5rem 1rem',
-              borderRadius: '4px',
+              padding: '0.75rem 1.5rem',
+              borderRadius: '8px',
               border: '1px solid #333',
               background: 'transparent',
               color: '#888',
               cursor: 'pointer',
-              marginBottom: '1rem',
+              marginBottom: '1.5rem',
             }}
           >
             ← Back to Quizzes
           </button>
 
-          <h3 style={{ color: '#fff', marginBottom: '1rem' }}>Quiz Attempts</h3>
+          <h3 style={{ fontSize: '1.125rem', fontWeight: 600, color: '#fff', marginBottom: '1rem' }}>Quiz Attempts</h3>
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
@@ -2027,7 +1997,7 @@ function QuizControlCenter() {
                         padding: '0.25rem 0.5rem',
                         borderRadius: '4px',
                         fontSize: '0.75rem',
-                        background: attempt.score >= attempt.passingScore ? '#10b981' : '#dc2626',
+                        background: attempt.score >= attempt.passingScore ? '#10b981' : '#ef4444',
                         color: '#fff',
                       }}>
                         {attempt.score >= attempt.passingScore ? 'Passed' : 'Failed'}
@@ -2041,7 +2011,7 @@ function QuizControlCenter() {
                           padding: '0.5rem 1rem',
                           borderRadius: '4px',
                           border: 'none',
-                          background: '#dc2626',
+                          background: '#ef4444',
                           color: '#fff',
                           cursor: 'pointer',
                           fontSize: '0.75rem',
@@ -2145,7 +2115,7 @@ function AssignmentControlCenter() {
                       padding: '0.5rem 1rem',
                       borderRadius: '4px',
                       border: 'none',
-                      background: '#dc2626',
+                      background: '#ef4444',
                       color: '#fff',
                       cursor: 'pointer',
                       fontSize: '0.75rem',
@@ -2267,123 +2237,88 @@ function CourseEnrollmentsManagement({ selectedCourse }) {
   if (!selectedCourse) return <div className="dashboard-section">Course not found or not selected</div>;
 
   return (
-    <div style={{ background: '#1a1a1a', padding: '1.5rem', borderRadius: '8px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-        <h3 style={{ color: '#fff', margin: 0 }}>Enrolled Students ({enrollments.length})</h3>
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
+    <div className="bg-white/5 p-6 rounded-xl">
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-lg font-semibold text-white m-0">Enrolled Students ({enrollments.length})</h3>
+        <div className="flex gap-2">
           <button
             onClick={loadEnrollments}
-            style={{
-              padding: '0.5rem 1rem',
-              borderRadius: '4px',
-              border: '1px solid #333',
-              background: 'transparent',
-              color: '#fff',
-              cursor: 'pointer',
-              fontSize: '0.875rem',
-            }}
+            className="inline-flex items-center px-4 py-2 rounded-xl border border-white/10 hover:border-cyan-400/40 bg-white/5 hover:bg-white/10 transition text-sm"
           >
             Refresh
           </button>
         </div>
       </div>
       
-      <div style={{ overflowX: 'auto' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+      <div className="overflow-x-auto">
+        <table className="w-full border-collapse">
           <thead>
-            <tr style={{ borderBottom: '1px solid #333' }}>
-              <th style={{ textAlign: 'left', padding: '0.75rem', color: '#888', fontSize: '0.75rem' }}>Student</th>
-              <th style={{ textAlign: 'left', padding: '0.75rem', color: '#888', fontSize: '0.75rem' }}>Email</th>
-              <th style={{ textAlign: 'left', padding: '0.75rem', color: '#888', fontSize: '0.75rem' }}>Enrolled</th>
-              <th style={{ textAlign: 'left', padding: '0.75rem', color: '#888', fontSize: '0.75rem' }}>Last Activity</th>
-              <th style={{ textAlign: 'left', padding: '0.75rem', color: '#888', fontSize: '0.75rem' }}>Progress</th>
-              <th style={{ textAlign: 'left', padding: '0.75rem', color: '#888', fontSize: '0.75rem' }}>Completed</th>
-              <th style={{ textAlign: 'left', padding: '0.75rem', color: '#888', fontSize: '0.75rem' }}>Certificate</th>
-              <th style={{ textAlign: 'left', padding: '0.75rem', color: '#888', fontSize: '0.75rem' }}>Status</th>
-              <th style={{ textAlign: 'left', padding: '0.75rem', color: '#888', fontSize: '0.75rem' }}>Actions</th>
+            <tr className="border-b border-white/10">
+              <th className="text-left p-3 text-xs text-slate-400">Student</th>
+              <th className="text-left p-3 text-xs text-slate-400">Email</th>
+              <th className="text-left p-3 text-xs text-slate-400">Enrolled</th>
+              <th className="text-left p-3 text-xs text-slate-400">Last Activity</th>
+              <th className="text-left p-3 text-xs text-slate-400">Progress</th>
+              <th className="text-left p-3 text-xs text-slate-400">Completed</th>
+              <th className="text-left p-3 text-xs text-slate-400">Certificate</th>
+              <th className="text-left p-3 text-xs text-slate-400">Status</th>
+              <th className="text-left p-3 text-xs text-slate-400">Actions</th>
             </tr>
           </thead>
           <tbody>
             {enrollments.map((e) => (
-              <tr key={e._id} style={{ borderBottom: '1px solid #222' }}>
-                <td style={{ padding: '0.75rem', color: '#fff' }}>{e.student?.name || '—'}</td>
-                <td style={{ padding: '0.75rem', color: '#888' }}>{e.student?.email || '—'}</td>
-                <td style={{ padding: '0.75rem', color: '#888' }}>
+              <tr key={e._id} className="border-b border-white/5">
+                <td className="p-3 text-white">{e.student?.name || '—'}</td>
+                <td className="p-3 text-slate-400">{e.student?.email || '—'}</td>
+                <td className="p-3 text-slate-400">
                   {e.enrolledAt ? new Date(e.enrolledAt).toLocaleDateString() : '—'}
                 </td>
-                <td style={{ padding: '0.75rem', color: '#888' }}>
+                <td className="p-3 text-slate-400">
                   {e.lastActivity ? new Date(e.lastActivity).toLocaleDateString() : '—'}
                 </td>
-                <td style={{ padding: '0.75rem', color: '#fff' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <div style={{ 
-                      flex: 1, 
-                      height: '6px', 
-                      background: '#333', 
-                      borderRadius: '3px',
-                      minWidth: '60px',
-                      maxWidth: '100px'
-                    }}>
-                      <div style={{ 
-                        height: '100%', 
-                        background: e.progress >= 100 ? '#10b981' : '#06b6d4', 
-                        borderRadius: '3px',
-                        width: `${e.progress || 0}%`
-                      }} />
+                <td className="p-3 text-white">
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 h-1.5 bg-white/10 rounded-full min-w-[60px] max-w-[100px]">
+                      <div 
+                        className={`h-full rounded-full ${
+                          e.progress >= 100 ? 'bg-emerald-500' : 'bg-cyan-500'
+                        }`}
+                        style={{ width: `${e.progress || 0}%` }}
+                      />
                     </div>
-                    <span style={{ fontSize: '0.75rem', color: '#888' }}>{e.progress || 0}%</span>
+                    <span className="text-xs text-slate-400">{e.progress || 0}%</span>
                   </div>
                 </td>
-                <td style={{ padding: '0.75rem', color: '#888' }}>
+                <td className="p-3 text-slate-400">
                   {e.completedAt ? new Date(e.completedAt).toLocaleDateString() : '—'}
                 </td>
-                <td style={{ padding: '0.75rem' }}>
+                <td className="p-3">
                   {e.certificateId ? (
-                    <span style={{
-                      padding: '0.25rem 0.5rem',
-                      borderRadius: '4px',
-                      fontSize: '0.75rem',
-                      background: '#10b981',
-                      color: '#fff',
-                    }}>
+                    <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-emerald-500/20 text-emerald-200">
                       ✓ Issued
                     </span>
                   ) : (
-                    <span style={{
-                      padding: '0.25rem 0.5rem',
-                      borderRadius: '4px',
-                      fontSize: '0.75rem',
-                      background: '#333',
-                      color: '#888',
-                    }}>
+                    <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-white/10 text-slate-400">
                       —
                     </span>
                   )}
                 </td>
-                <td style={{ padding: '0.75rem' }}>
-                  <span style={{
-                    padding: '0.25rem 0.5rem',
-                    borderRadius: '4px',
-                    fontSize: '0.75rem',
-                    background: e.status === 'completed' ? '#10b981' : e.status === 'active' ? '#06b6d4' : '#333',
-                    color: '#fff',
-                  }}>
+                <td className="p-3">
+                  <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${
+                    e.status === 'completed' 
+                      ? 'bg-emerald-500/20 text-emerald-200' 
+                      : e.status === 'active' 
+                        ? 'bg-cyan-500/20 text-cyan-200' 
+                        : 'bg-white/10 text-slate-400'
+                  }`}>
                     {e.status}
                   </span>
                 </td>
-                <td style={{ padding: '0.75rem' }}>
-                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                <td className="p-3">
+                  <div className="flex gap-2 flex-wrap">
                     <button
                       onClick={() => handleViewStudentDetails(e.student?._id)}
-                      style={{
-                        padding: '0.25rem 0.5rem',
-                        borderRadius: '4px',
-                        border: 'none',
-                        background: '#06b6d4',
-                        color: '#fff',
-                        cursor: 'pointer',
-                        fontSize: '0.75rem',
-                      }}
+                      className="inline-flex items-center justify-center px-2 py-1 rounded-lg bg-cyan-500 text-slate-950 font-medium hover:bg-cyan-400 transition text-xs"
                       title="View student details"
                     >
                       Details
@@ -2391,15 +2326,11 @@ function CourseEnrollmentsManagement({ selectedCourse }) {
                     {e.status === 'completed' && (
                       <button
                         onClick={() => handleIssueCertificate(e._id)}
-                        style={{
-                          padding: '0.25rem 0.5rem',
-                          borderRadius: '4px',
-                          border: 'none',
-                          background: e.certificateId ? '#10b981' : '#8b5cf6',
-                          color: '#fff',
-                          cursor: 'pointer',
-                          fontSize: '0.75rem',
-                        }}
+                        className={`inline-flex items-center justify-center px-2 py-1 rounded-lg font-medium hover:opacity-80 transition text-xs ${
+                          e.certificateId 
+                            ? 'bg-emerald-500 text-slate-950' 
+                            : 'bg-violet-500 text-white'
+                        }`}
                         title={e.certificateId ? "Download certificate" : "Issue certificate"}
                       >
                         {e.certificateId ? 'Download' : 'Cert'}
@@ -2408,15 +2339,7 @@ function CourseEnrollmentsManagement({ selectedCourse }) {
                     {e.status !== 'completed' && (
                       <button
                         onClick={() => handleMarkComplete(e._id)}
-                        style={{
-                          padding: '0.25rem 0.5rem',
-                          borderRadius: '4px',
-                          border: 'none',
-                          background: '#10b981',
-                          color: '#fff',
-                          cursor: 'pointer',
-                          fontSize: '0.75rem',
-                        }}
+                        className="inline-flex items-center justify-center px-2 py-1 rounded-lg bg-emerald-500 text-slate-950 font-medium hover:bg-emerald-400 transition text-xs"
                         title="Mark as complete"
                       >
                         Complete
@@ -2424,30 +2347,14 @@ function CourseEnrollmentsManagement({ selectedCourse }) {
                     )}
                     <button
                       onClick={() => handleResetProgress(e._id)}
-                      style={{
-                        padding: '0.25rem 0.5rem',
-                        borderRadius: '4px',
-                        border: 'none',
-                        background: '#f59e0b',
-                        color: '#fff',
-                        cursor: 'pointer',
-                        fontSize: '0.75rem',
-                      }}
+                      className="inline-flex items-center justify-center px-2 py-1 rounded-lg bg-amber-500 text-slate-950 font-medium hover:bg-amber-400 transition text-xs"
                       title="Reset progress"
                     >
                       Reset
                     </button>
                     <button
                       onClick={() => handleRemoveEnrollment(e._id)}
-                      style={{
-                        padding: '0.25rem 0.5rem',
-                        borderRadius: '4px',
-                        border: 'none',
-                        background: '#dc2626',
-                        color: '#fff',
-                        cursor: 'pointer',
-                        fontSize: '0.75rem',
-                      }}
+                      className="inline-flex items-center justify-center px-2 py-1 rounded-lg bg-red-500/20 text-red-200 font-medium hover:bg-red-500/30 transition text-xs"
                       title="Remove enrollment"
                     >
                       Remove

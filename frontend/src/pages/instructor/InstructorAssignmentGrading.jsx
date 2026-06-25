@@ -136,6 +136,10 @@ export default function InstructorAssignmentGrading() {
   if (loading) {
     return (
       <div className="dashboard-page">
+        <div className="dashboard-bg">
+          <div className="dashboard-orb dashboard-orb-1"></div>
+          <div className="dashboard-orb dashboard-orb-2"></div>
+        </div>
         <div className="dashboard-container">
           <div className="dashboard-loading">
             <p className="loading-text">
@@ -150,6 +154,10 @@ export default function InstructorAssignmentGrading() {
   if (error) {
     return (
       <div className="dashboard-page">
+        <div className="dashboard-bg">
+          <div className="dashboard-orb dashboard-orb-1"></div>
+          <div className="dashboard-orb dashboard-orb-2"></div>
+        </div>
         <div className="dashboard-container">
           <div className="dashboard-error">
             <p>{error}</p>
@@ -169,6 +177,11 @@ export default function InstructorAssignmentGrading() {
 
   return (
     <div className="dashboard-page">
+      <div className="dashboard-bg">
+        <div className="dashboard-orb dashboard-orb-1"></div>
+        <div className="dashboard-orb dashboard-orb-2"></div>
+      </div>
+
       <div className="dashboard-container">
         <div className="dashboard-header">
           <p className="dashboard-label">Instructor</p>

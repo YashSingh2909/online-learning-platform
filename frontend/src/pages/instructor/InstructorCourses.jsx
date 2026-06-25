@@ -21,7 +21,7 @@ export default function InstructorCourses() {
       setLoading(true);
       setError('');
       try {
-        // If backend supports only instructor-specific listing, we’ll rely on getAllCourses for now.
+        // If backend supports only instructor-specific listing, we'll rely on getAllCourses for now.
         const res = await courseAPI.getAllCourses();
         setCourses(res.data.data || []);
       } catch (e) {
@@ -33,11 +33,41 @@ export default function InstructorCourses() {
     load();
   }, [user, navigate]);
 
-  if (loading) return <div className="dashboard-page"><div className="dashboard-loading"><p className="loading-text">Loading courses...</p></div></div>;
-  if (error) return <div className="dashboard-page"><div className="dashboard-error"><p>{error}</p></div></div>;
+  if (loading) return (
+    <div className="dashboard-page">
+      <div className="dashboard-bg">
+        <div className="dashboard-orb dashboard-orb-1"></div>
+        <div className="dashboard-orb dashboard-orb-2"></div>
+      </div>
+      <div className="dashboard-container">
+        <div className="dashboard-loading">
+          <p className="loading-text">Loading courses...</p>
+        </div>
+      </div>
+    </div>
+  );
+
+  if (error) return (
+    <div className="dashboard-page">
+      <div className="dashboard-bg">
+        <div className="dashboard-orb dashboard-orb-1"></div>
+        <div className="dashboard-orb dashboard-orb-2"></div>
+      </div>
+      <div className="dashboard-container">
+        <div className="dashboard-error">
+          <p>{error}</p>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <div className="dashboard-page">
+      <div className="dashboard-bg">
+        <div className="dashboard-orb dashboard-orb-1"></div>
+        <div className="dashboard-orb dashboard-orb-2"></div>
+      </div>
+
       <div className="dashboard-container">
         <div className="dashboard-header">
           <p className="dashboard-label">Instructor</p>
@@ -47,34 +77,52 @@ export default function InstructorCourses() {
 
         {courses.length === 0 ? (
           <div className="dashboard-empty">
-            <h2 className="dashboard-empty-title">No courses</h2>
+            <h2 className="dashboard-empty-title">No courses yet</h2>
             <p className="dashboard-empty-text">Create a course to start managing content.</p>
-            <button className="btn-action" style={{ marginTop: '1.5rem' }} onClick={() => navigate('/instructor/create-course')}>
-              Create course
+            <button
+              className="btn-action"
+              onClick={() => navigate('/instructor/create-course')}
+            >
+              Create Course
             </button>
           </div>
         ) : (
           <div className="dashboard-grid">
             {courses.map((c) => (
-              <div key={c._id} className="course-card-alt">
-                <div className="course-card-header">
+              <div key={c._id} className="dashboard-section">
+                <div className="dashboard-section-header">
                   <div>
-                    <h3 className="course-card-title">{c.title}</h3>
-                    <p className="course-card-meta">{c.isPublished ? 'Published' : 'Draft'}</p>
+                    <h2 className="dashboard-section-title">{c.title}</h2>
+                    <p className="dashboard-section-desc">{c.isPublished ? 'Published' : 'Draft'}</p>
                   </div>
+                  <span className={`badge ${c.isPublished ? 'text-emerald-400' : 'text-amber-400'}`}>
+                    {c.isPublished ? 'Published' : 'Draft'}
+                  </span>
                 </div>
 
-                <div style={{ marginTop: '1rem', display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-                  <button className="btn-action" onClick={() => navigate(`/instructor/${c._id}/publish`)}>
+                <div className="form-actions">
+                  <button
+                    className="btn-action"
+                    onClick={() => navigate(`/instructor/${c._id}/publish`)}
+                  >
                     Publish
                   </button>
-                  <button className="btn-outline-alt" onClick={() => navigate(`/instructor/${c._id}/lessons`)}>
+                  <button
+                    className="btn-outline-alt"
+                    onClick={() => navigate(`/instructor/${c._id}/lessons`)}
+                  >
                     Lessons
                   </button>
-                  <button className="btn-outline-alt" onClick={() => navigate(`/instructor/${c._id}/quizzes`)}>
+                  <button
+                    className="btn-outline-alt"
+                    onClick={() => navigate(`/instructor/${c._id}/quizzes`)}
+                  >
                     Quizzes
                   </button>
-                  <button className="btn-outline-alt" onClick={() => navigate(`/instructor/${c._id}/assignments`)}>
+                  <button
+                    className="btn-outline-alt"
+                    onClick={() => navigate(`/instructor/${c._id}/assignments`)}
+                  >
                     Assignments
                   </button>
                 </div>
@@ -86,4 +134,3 @@ export default function InstructorCourses() {
     </div>
   );
 }
-

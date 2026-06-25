@@ -93,6 +93,11 @@ export default function Certificate() {
 
   return (
     <div className="dashboard-page">
+      <div className="dashboard-bg">
+        <div className="dashboard-orb dashboard-orb-1"></div>
+        <div className="dashboard-orb dashboard-orb-2"></div>
+      </div>
+
       <div className="dashboard-container">
         <div className="dashboard-header">
           <p className="dashboard-label">Certificates</p>
@@ -101,13 +106,20 @@ export default function Certificate() {
         </div>
 
         {loading ? (
-          <p>Loading...</p>
+          <div className="dashboard-loading">
+            <p className="loading-text">Loading...</p>
+          </div>
         ) : error ? (
-          <p style={{ color: 'red' }}>{error}</p>
+          <div className="dashboard-error">
+            {error}
+          </div>
         ) : enrollments.length === 0 ? (
-          <div>
-            <h3>No enrollments found</h3>
-            <Link to="/courses">Go to Courses</Link>
+          <div className="dashboard-empty">
+            <h2 className="dashboard-empty-title">No enrollments found</h2>
+            <p className="dashboard-empty-text">Enroll in a course to start earning certificates.</p>
+            <Link to="/courses" className="btn-action" style={{ marginTop: '1rem' }}>
+              Browse Courses
+            </Link>
           </div>
         ) : (
           <div className="dashboard-grid">
@@ -116,18 +128,30 @@ export default function Certificate() {
               const isGenerated = enr.certificateReceived === true;
 
               return (
-                <div key={enr._id} className="cert-card">
-                  <h3>{enr.course?.title}</h3>
-                  <p>Progress: {enr.progress ?? 0}%</p>
-                  <p>Status: {enr.status}</p>
+                <div key={enr._id} className="dashboard-section">
+                  <div className="dashboard-section-header">
+                    <div>
+                      <h3 className="dashboard-section-title">{enr.course?.title}</h3>
+                      <p className="dashboard-section-desc">Progress: {enr.progress ?? 0}%</p>
+                      <p className="dashboard-section-desc">Status: {enr.status}</p>
+                    </div>
+                    <span className={`badge ${isComplete ? 'text-emerald-400' : ''}`}>
+                      {isComplete ? 'Complete' : 'In Progress'}
+                    </span>
+                  </div>
 
                   {!isComplete ? (
-                    <button disabled className="btn-action">
+                    <button
+                      disabled
+                      className="btn-disabled"
+                      style={{ marginTop: '1rem' }}
+                    >
                       Complete course first
                     </button>
                   ) : isGenerated ? (
                     <button
                       className="btn-action"
+                      style={{ marginTop: '1rem' }}
                       disabled={generating === enr._id}
                       onClick={() => downloadCert(enr._id)}
                     >
@@ -136,6 +160,7 @@ export default function Certificate() {
                   ) : (
                     <button
                       className="btn-action"
+                      style={{ marginTop: '1rem' }}
                       disabled={generating === enr._id}
                       onClick={() => generateCert(enr._id)}
                     >

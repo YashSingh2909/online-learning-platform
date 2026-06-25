@@ -253,20 +253,24 @@ img {
   gap: 0.5rem;
   padding: 0.5rem 0.875rem;
   font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--text-secondary);
+  font-weight: 600;
+  color: var(--text-primary);
   border-radius: 8px;
   transition: all 0.2s ease;
+  position: relative;
 }
 
 .nav-link:hover {
-  color: var(--text-primary);
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(6, 182, 212, 0.15);
+  color: var(--accent);
+  transform: translateY(-1px);
 }
 
 .nav-link.active {
+  background: linear-gradient(135deg, rgba(6, 182, 212, 0.2) 0%, rgba(99, 102, 241, 0.2) 100%);
   color: var(--accent);
-  background: rgba(6, 182, 212, 0.1);
+  border: 1px solid rgba(6, 182, 212, 0.3);
+  box-shadow: 0 4px 12px rgba(6, 182, 212, 0.15);
 }
 
 /* Feature card */
@@ -572,6 +576,16 @@ img {
   border-radius: 9999px;
 }
 
+.badge.text-emerald-400 {
+  background: rgba(16, 185, 129, 0.1);
+  color: #34d399;
+}
+
+.badge.text-amber-400 {
+  background: rgba(245, 158, 11, 0.1);
+  color: #fbbf24;
+}
+
 .badge::before {
   content: '';
   width: 6px;
@@ -579,6 +593,14 @@ img {
   background: var(--accent);
   border-radius: 50%;
   animation: pulse 2s ease-in-out infinite;
+}
+
+.badge.text-emerald-400::before {
+  background: #34d399;
+}
+
+.badge.text-amber-400::before {
+  background: #fbbf24;
 }
 
 @keyframes pulse {
@@ -2195,13 +2217,249 @@ img {
   color: var(--accent);
 }
 
+.btn-disabled {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  background: var(--border);
+  border: none;
+  border-radius: 10px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Utility Classes */
+.space-y-3 > * + * {
+  margin-top: 0.75rem;
+}
+
+.space-y-4 > * + * {
+  margin-top: 1rem;
+}
+
 /* Quiz/Assignment Card */
 .quiz-card {
   background: rgba(15, 23, 42, 0.6);
   border: 1px solid var(--border);
   border-radius: 16px;
   padding: 1.25rem;
-  transition: all 0.25s ease;
+}
+
+/* Course Learn Page Styles */
+.course-learn-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.course-learn-header-info {
+  text-align: right;
+}
+
+.btn-back {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.625rem 1.25rem;
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid var(--border);
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-back:hover {
+  border-color: var(--accent);
+  color: var(--text-primary);
+}
+
+.course-learn-grid {
+  display: grid;
+  gap: 1.5rem;
+}
+
+@media (min-width: 1024px) {
+  .course-learn-grid {
+    grid-template-columns: 0.35fr 0.65fr;
+  }
+}
+
+.course-learn-sidebar {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.course-learn-sidebar-header {
+  padding: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.course-learn-sidebar-content {
+  flex: 1;
+  max-height: 70vh;
+  overflow-y: auto;
+  padding: 0.75rem;
+}
+
+.course-learn-empty {
+  padding: 1rem;
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  text-align: center;
+}
+
+.course-learn-lessons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.course-learn-lesson {
+  width: 100%;
+  text-align: left;
+  padding: 0.75rem 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.course-learn-lesson:hover {
+  border-color: rgba(6, 182, 212, 0.3);
+}
+
+.course-learn-lesson-active {
+  border-color: rgba(6, 182, 212, 0.6);
+  background: rgba(6, 182, 212, 0.1);
+}
+
+.course-learn-lesson-content {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.course-learn-lesson-title {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.course-learn-lesson-active .course-learn-lesson-title {
+  color: var(--accent);
+}
+
+.course-learn-lesson-duration {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 0.25rem;
+}
+
+.course-learn-lesson-complete {
+  font-size: 0.75rem;
+  color: #34d399;
+}
+
+.course-learn-sidebar-footer {
+  padding: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.course-learn-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.course-learn-video-section {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 1rem;
+}
+
+.course-learn-video-wrapper {
+  background: rgba(3, 7, 18, 0.4);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.course-learn-video {
+  width: 100%;
+  display: block;
+}
+
+.course-learn-video-empty {
+  padding: 1.5rem;
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.course-learn-video-info {
+  margin-top: 1rem;
+}
+
+.course-learn-progress {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 1rem;
+}
+
+@media (min-width: 1024px) {
+  .course-learn-progress {
+    position: sticky;
+    top: 6rem;
+  }
+}
+
+.course-learn-progress-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.course-learn-progress-value {
+  font-size: 1.875rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-top: 0.25rem;
+}
+
+.course-learn-progress-bar {
+  height: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 9999px;
+  overflow: hidden;
+  margin-top: 1rem;
+}
+
+.course-learn-progress-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 9999px;
+  transition: width 0.3s ease;
 }
 
 .quiz-card:hover {
@@ -2587,6 +2845,7 @@ img {
 
 .sidebar-action:hover {
   transform: translateY(-2px);
+  box-shadow: 0 8px 20px var(--accent-glow);
 }
 
 .sidebar-action-outline {
@@ -2607,6 +2866,27 @@ img {
 .sidebar-action-outline:hover {
   border-color: var(--accent);
   color: var(--accent);
+}
+
+/* Courses Page Styles */
+.courses-page {
+  min-height: 100vh;
+  background: var(--bg-primary);
+  padding: 2rem 1.5rem;
+  position: relative;
+}
+
+@media (min-width: 768px) {
+  .courses-page {
+    padding: 2.5rem 2rem;
+  }
+}
+
+.courses-page-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
 }
 
 /* Mini Course Card */

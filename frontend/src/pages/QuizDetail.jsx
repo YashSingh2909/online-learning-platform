@@ -73,14 +73,20 @@ export default function QuizDetail() {
 
   if (loading && !quiz) {
     return (
-      <div className="dashboard-page">
-        <div className="dashboard-bg">
-          <div className="dashboard-orb dashboard-orb-1"></div>
-          <div className="dashboard-orb dashboard-orb-2"></div>
-        </div>
-        <div className="dashboard-container">
-          <div className="dashboard-loading">
-            <p className="loading-text">Loading quiz...</p>
+      <div className="bg-slate-950 text-slate-100 min-h-screen">
+        <div className="relative overflow-hidden">
+          <div
+            className="absolute -top-24 -right-24 w-[420px] h-[420px] rounded-full blur-3xl opacity-40"
+            style={{ background: 'linear-gradient(135deg, var(--gradient-start), var(--gradient-end))' }}
+          />
+          <div
+            className="absolute bottom-[-20px] -left-24 w-[320px] h-[320px] rounded-full blur-3xl opacity-30"
+            style={{ background: 'linear-gradient(135deg, rgba(99,102,241,0.35), rgba(6,182,212,0.25))' }}
+          />
+          <div className="container mx-auto px-6 py-10 relative z-10">
+            <div className="rounded-2xl bg-white/5 ring-1 ring-white/10 p-8">
+              <p className="text-slate-300">Loading quiz...</p>
+            </div>
           </div>
         </div>
       </div>
@@ -100,18 +106,27 @@ export default function QuizDetail() {
     }
 
     return (
-      <div className="dashboard-page">
-        <div className="dashboard-bg">
-          <div className="dashboard-orb dashboard-orb-1"></div>
-          <div className="dashboard-orb dashboard-orb-2"></div>
-        </div>
-        <div className="dashboard-container">
-          <div className="dashboard-error">
-            <p>{error}</p>
+      <div className="bg-slate-950 text-slate-100 min-h-screen">
+        <div className="relative overflow-hidden">
+          <div
+            className="absolute -top-24 -right-24 w-[420px] h-[420px] rounded-full blur-3xl opacity-40"
+            style={{ background: 'linear-gradient(135deg, var(--gradient-start), var(--gradient-end))' }}
+          />
+          <div
+            className="absolute bottom-[-20px] -left-24 w-[320px] h-[320px] rounded-full blur-3xl opacity-30"
+            style={{ background: 'linear-gradient(135deg, rgba(99,102,241,0.35), rgba(6,182,212,0.25))' }}
+          />
+          <div className="container mx-auto px-6 py-10 relative z-10">
+            <div className="rounded-2xl border border-red-400/30 bg-red-500/10 p-6">
+              <p className="text-red-200">{error}</p>
+            </div>
+            <button
+              onClick={() => navigate('/quizzes')}
+              className="inline-flex items-center px-4 py-2 rounded-xl border border-white/10 hover:border-cyan-400/40 bg-white/5 hover:bg-white/10 transition mt-6"
+            >
+              ← Back to Quizzes
+            </button>
           </div>
-          <button onClick={() => navigate('/quizzes')} className="btn-outline-alt" style={{ marginTop: '1rem' }}>
-            ← Back to Quizzes
-          </button>
         </div>
       </div>
     );
@@ -120,17 +135,26 @@ export default function QuizDetail() {
 
   if (!quiz) {
     return (
-      <div className="dashboard-page">
-        <div className="dashboard-bg">
-          <div className="dashboard-orb dashboard-orb-1"></div>
-          <div className="dashboard-orb dashboard-orb-2"></div>
-        </div>
-        <div className="dashboard-container">
-          <div className="dashboard-empty">
-            <h2 className="dashboard-empty-title">Quiz not found</h2>
-            <button onClick={() => navigate('/quizzes')} className="btn-action" style={{ marginTop: '1rem' }}>
-              Back to Quizzes
-            </button>
+      <div className="bg-slate-950 text-slate-100 min-h-screen">
+        <div className="relative overflow-hidden">
+          <div
+            className="absolute -top-24 -right-24 w-[420px] h-[420px] rounded-full blur-3xl opacity-40"
+            style={{ background: 'linear-gradient(135deg, var(--gradient-start), var(--gradient-end))' }}
+          />
+          <div
+            className="absolute bottom-[-20px] -left-24 w-[320px] h-[320px] rounded-full blur-3xl opacity-30"
+            style={{ background: 'linear-gradient(135deg, rgba(99,102,241,0.35), rgba(6,182,212,0.25))' }}
+          />
+          <div className="container mx-auto px-6 py-10 relative z-10">
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-8 text-center">
+              <h2 className="text-xl font-semibold">Quiz not found</h2>
+              <button
+                onClick={() => navigate('/quizzes')}
+                className="inline-flex items-center justify-center px-6 py-3 rounded-xl bg-cyan-500 text-slate-950 font-semibold hover:bg-cyan-400 transition mt-6"
+              >
+                Back to Quizzes
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -140,37 +164,51 @@ export default function QuizDetail() {
   // Show results
   if (submitted && result) {
     return (
-      <div className="dashboard-page">
-        <div className="dashboard-bg">
-          <div className="dashboard-orb dashboard-orb-1"></div>
-          <div className="dashboard-orb dashboard-orb-2"></div>
-        </div>
-        <div className="dashboard-container">
-          <div className="dashboard-header">
-            <p className="dashboard-label">Quiz Complete</p>
-            <h1 className="dashboard-title">{quiz.title}</h1>
-          </div>
-
-          <div className="cert-card" style={{ maxWidth: '500px', margin: '0 auto' }}>
-            <div className="cert-badge">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 28, height: 28 }}>
-                <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
-                <path d="M22 4L12 14.01l-3-3" />
-              </svg>
+      <div className="bg-slate-950 text-slate-100 min-h-screen">
+        <div className="relative overflow-hidden">
+          <div
+            className="absolute -top-24 -right-24 w-[420px] h-[420px] rounded-full blur-3xl opacity-40"
+            style={{ background: 'linear-gradient(135deg, var(--gradient-start), var(--gradient-end))' }}
+          />
+          <div
+            className="absolute bottom-[-20px] -left-24 w-[320px] h-[320px] rounded-full blur-3xl opacity-30"
+            style={{ background: 'linear-gradient(135deg, rgba(99,102,241,0.35), rgba(6,182,212,0.25))' }}
+          />
+          <div className="container mx-auto px-6 py-10 relative z-10">
+            <div className="mb-8">
+              <p className="text-sm uppercase tracking-[0.2em] text-cyan-200/70">Quiz Complete</p>
+              <h1 className="text-3xl sm:text-4xl font-semibold mt-2">{quiz.title}</h1>
             </div>
-            <h3 className="cert-title">Quiz Completed!</h3>
-            <p className="cert-course">Your Score</p>
-            <p className="stat-value" style={{ fontSize: '3rem', marginTop: '0.5rem' }}>{result.percentage ?? result.score ?? 0}%</p>
-            <p className="cert-date">
-              {result.correct ?? 0} / {result.total ?? 0} correct
-            </p>
-            <div style={{ marginTop: '1.5rem', display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-              <button onClick={() => navigate('/quizzes')} className="btn-outline-alt">
-                Back to Quizzes
-              </button>
-              <button onClick={() => window.location.reload()} className="btn-action">
-                Try Again
-              </button>
+
+            <div className="rounded-2xl bg-white/5 ring-1 ring-white/10 p-8 shadow-xl shadow-slate-950/10 max-w-md mx-auto">
+              <div className="flex justify-center mb-6">
+                <div className="w-16 h-16 rounded-full bg-emerald-500/20 flex items-center justify-center">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-8 h-8 text-emerald-400">
+                    <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
+                    <path d="M22 4L12 14.01l-3-3" />
+                  </svg>
+                </div>
+              </div>
+              <h3 className="text-2xl font-semibold text-center mb-2">Quiz Completed!</h3>
+              <p className="text-slate-300 text-center mb-4">Your Score</p>
+              <p className="text-5xl font-bold text-center text-cyan-400 mb-4">{result.percentage ?? result.score ?? 0}%</p>
+              <p className="text-slate-300 text-center">
+                {result.correct ?? 0} / {result.total ?? 0} correct
+              </p>
+              <div className="flex gap-3 mt-8 justify-center">
+                <button
+                  onClick={() => navigate('/quizzes')}
+                  className="inline-flex items-center justify-center px-6 py-3 rounded-xl border border-white/10 hover:border-cyan-400/40 bg-white/5 hover:bg-white/10 transition font-medium"
+                >
+                  Back to Quizzes
+                </button>
+                <button
+                  onClick={() => window.location.reload()}
+                  className="inline-flex items-center justify-center px-6 py-3 rounded-xl bg-cyan-500 text-slate-950 font-semibold hover:bg-cyan-400 transition"
+                >
+                  Try Again
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -183,96 +221,107 @@ export default function QuizDetail() {
 
   return (
     <div className="bg-slate-950 text-slate-100 min-h-screen">
-      <div className="container mx-auto px-6 py-10 quiz-detail-container">
-        <button
-          onClick={() => navigate('/quizzes')}
-          className="inline-flex items-center px-4 py-2 rounded-xl border border-white/10 hover:border-cyan-400/40 bg-white/5 hover:bg-white/10 transition mb-6"
-        >
-          ← Exit Quiz
-        </button>
+      <div className="relative overflow-hidden">
+        <div
+          className="absolute -top-24 -right-24 w-[420px] h-[420px] rounded-full blur-3xl opacity-40"
+          style={{ background: 'linear-gradient(135deg, var(--gradient-start), var(--gradient-end))' }}
+        />
+        <div
+          className="absolute bottom-[-20px] -left-24 w-[320px] h-[320px] rounded-full blur-3xl opacity-30"
+          style={{ background: 'linear-gradient(135deg, rgba(99,102,241,0.35), rgba(6,182,212,0.25))' }}
+        />
 
-        <div className="mb-6">
-          <p className="text-sm uppercase tracking-[0.2em] text-cyan-200/70">{quiz.title}</p>
-          <h1 className="text-3xl font-semibold mt-2">Question {currentQ + 1} of {quiz.questions?.length}</h1>
-        </div>
-
-        <div className="rounded-2xl bg-white/5 ring-1 ring-white/10 p-6 shadow-xl shadow-slate-950/10">
-          <p className="text-sm uppercase tracking-[0.15em] text-cyan-200/70">Question {currentQ + 1}</p>
-          <p className="text-xl font-medium mt-3">{question?.question}</p>
-
-          <div className="mt-6 flex flex-col gap-3">
-            {question?.options?.map((opt, idx) => {
-              const qid = question._id;
-              const selectedIdx = answers[qid];
-              const isSelected = selectedIdx === idx;
-              return (
-                <button
-                  type="button"
-                  key={idx}
-                  onClick={() => selectAnswer(qid, idx)}
-                  className={`w-full text-left rounded-xl border p-4 transition ${
-                    isSelected
-                      ? 'border-cyan-400/60 bg-cyan-500/10'
-                      : 'border-white/10 bg-white/5 hover:border-cyan-400/30'
-                  }`}
-                >
-                  <div className="flex items-start gap-3">
-                    <div className={`w-9 h-9 rounded-full flex items-center justify-center border font-semibold transition ${
-                      isSelected ? 'border-cyan-400/60 bg-cyan-500 text-slate-950' : 'border-white/10 bg-white/5'
-                    }`}>
-                      {letters[idx]}
-                    </div>
-                    <div className="text-slate-100">
-                      <div className="text-[15px] font-medium">{opt}</div>
-                    </div>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="container mx-auto px-6 py-10 relative z-10">
           <button
-            onClick={prevQ}
-            className="inline-flex items-center justify-center px-4 py-2 rounded-xl border border-white/10 hover:border-cyan-400/40 bg-white/5 hover:bg-white/10 transition disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={currentQ === 0}
+            onClick={() => navigate('/quizzes')}
+            className="inline-flex items-center px-4 py-2 rounded-xl border border-white/10 hover:border-cyan-400/40 bg-white/5 hover:bg-white/10 transition mb-6"
           >
-            ← Previous
+            ← Exit Quiz
           </button>
 
-          <div className="flex items-center justify-center gap-2">
-            {quiz.questions?.map((_, idx) => {
-              const isActive = idx === currentQ;
-              const isAnswered = answers[quiz.questions[idx]?._id] !== undefined;
-              return (
-                <div
-                  key={idx}
-                  className={`w-2.5 h-2.5 rounded-full cursor-pointer transition ${
-                    isActive ? 'bg-cyan-400' : isAnswered ? 'bg-slate-300/60' : 'bg-slate-500/30'
-                  }`}
-                  onClick={() => setCurrentQ(idx)}
-                />
-              );
-            })}
+          <div className="mb-6">
+            <p className="text-sm uppercase tracking-[0.2em] text-cyan-200/70">{quiz.title}</p>
+            <h1 className="text-3xl sm:text-4xl font-semibold mt-2">Question {currentQ + 1} of {quiz.questions?.length}</h1>
           </div>
 
-          {currentQ === quiz.questions?.length - 1 ? (
+          <div className="rounded-2xl bg-white/5 ring-1 ring-white/10 p-6 shadow-xl shadow-slate-950/10">
+            <p className="text-sm uppercase tracking-[0.15em] text-cyan-200/70">Question {currentQ + 1}</p>
+            <p className="text-xl font-medium mt-3">{question?.question}</p>
+
+            <div className="mt-6 flex flex-col gap-3">
+              {question?.options?.map((opt, idx) => {
+                const qid = question._id;
+                const selectedIdx = answers[qid];
+                const isSelected = selectedIdx === idx;
+                return (
+                  <button
+                    type="button"
+                    key={idx}
+                    onClick={() => selectAnswer(qid, idx)}
+                    className={`w-full text-left rounded-xl border p-4 transition ${
+                      isSelected
+                        ? 'border-cyan-400/60 bg-cyan-500/10'
+                        : 'border-white/10 bg-white/5 hover:border-cyan-400/30'
+                    }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className={`w-9 h-9 rounded-full flex items-center justify-center border font-semibold transition ${
+                        isSelected ? 'border-cyan-400/60 bg-cyan-500 text-slate-950' : 'border-white/10 bg-white/5'
+                      }`}>
+                        {letters[idx]}
+                      </div>
+                      <div className="text-slate-100">
+                        <div className="text-[15px] font-medium">{opt}</div>
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <button
-              onClick={submitQuiz}
-              className="inline-flex items-center justify-center px-6 py-2.5 rounded-xl bg-cyan-500 text-slate-950 font-semibold hover:bg-cyan-400 transition disabled:opacity-60"
-              disabled={loading}
+              onClick={prevQ}
+              className="inline-flex items-center justify-center px-4 py-2 rounded-xl border border-white/10 hover:border-cyan-400/40 bg-white/5 hover:bg-white/10 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={currentQ === 0}
             >
-              {loading ? 'Submitting...' : 'Submit Quiz'}
+              ← Previous
             </button>
-          ) : (
-            <button
-              onClick={nextQ}
-              className="inline-flex items-center justify-center px-6 py-2.5 rounded-xl border border-white/10 hover:border-cyan-400/40 bg-white/5 hover:bg-white/10 transition"
-            >
-              Next →
-            </button>
-          )}
+
+            <div className="flex items-center justify-center gap-2">
+              {quiz.questions?.map((_, idx) => {
+                const isActive = idx === currentQ;
+                const isAnswered = answers[quiz.questions[idx]?._id] !== undefined;
+                return (
+                  <div
+                    key={idx}
+                    className={`w-2.5 h-2.5 rounded-full cursor-pointer transition ${
+                      isActive ? 'bg-cyan-400' : isAnswered ? 'bg-slate-300/60' : 'bg-slate-500/30'
+                    }`}
+                    onClick={() => setCurrentQ(idx)}
+                  />
+                );
+              })}
+            </div>
+
+            {currentQ === quiz.questions?.length - 1 ? (
+              <button
+                onClick={submitQuiz}
+                className="inline-flex items-center justify-center px-6 py-2.5 rounded-xl bg-cyan-500 text-slate-950 font-semibold hover:bg-cyan-400 transition disabled:opacity-60"
+                disabled={loading}
+              >
+                {loading ? 'Submitting...' : 'Submit Quiz'}
+              </button>
+            ) : (
+              <button
+                onClick={nextQ}
+                className="inline-flex items-center justify-center px-6 py-2.5 rounded-xl border border-white/10 hover:border-cyan-400/40 bg-white/5 hover:bg-white/10 transition"
+              >
+                Next →
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>

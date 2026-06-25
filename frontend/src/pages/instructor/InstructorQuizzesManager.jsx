@@ -209,198 +209,255 @@ export default function InstructorQuizzesManager() {
   };
 
   return (
-    <div className="dashboard-page">
-      <div className="dashboard-container">
-        <div className="dashboard-header">
-          <p className="dashboard-label">Instructor</p>
-          <h1 className="dashboard-title">Quizzes Manager</h1>
-          <p className="dashboard-desc">Course: {courseId}</p>
-        </div>
+    <div className="bg-slate-950 text-slate-100 min-h-screen">
+      <div className="relative overflow-hidden">
+        <div
+          className="absolute -top-24 -right-24 w-[420px] h-[420px] rounded-full blur-3xl opacity-40"
+          style={{ background: 'linear-gradient(135deg, var(--gradient-start), var(--gradient-end))' }}
+        />
+        <div
+          className="absolute bottom-[-20px] -left-24 w-[320px] h-[320px] rounded-full blur-3xl opacity-30"
+          style={{ background: 'linear-gradient(135deg, rgba(99,102,241,0.35), rgba(6,182,212,0.25))' }}
+        />
 
-        {error ? (
-          <div className="dashboard-error" style={{ marginTop: '1rem' }}>{error}</div>
-        ) : null}
-
-        <div className="dashboard-grid" style={{ gridTemplateColumns: '1.1fr 0.9fr', gap: '1.5rem' }}>
-          <div>
-            <div className="dashboard-section" style={{ marginTop: '0' }}>
-              <div className="dashboard-section-header">
-                <div>
-                  <h2 className="dashboard-section-title">Existing Quizzes</h2>
-                  <p className="dashboard-section-desc">Edit, publish, or delete.</p>
-                </div>
-                <button className="btn-outline-alt" onClick={resetForm} type="button" disabled={loading}>
-                  + New Quiz
-                </button>
-              </div>
-
-              {loading && quizzes.length === 0 ? (
-                <div className="dashboard-loading"><p className="loading-text">Loading quizzes...</p></div>
-              ) : quizzes.length === 0 ? (
-                <div className="dashboard-empty" style={{ marginTop: '1rem' }}>
-                  <h2 className="dashboard-empty-title">No quizzes yet</h2>
-                  <p className="dashboard-empty-text">Create your first quiz.</p>
-                </div>
-              ) : (
-                <div className="space-y-3" style={{ marginTop: '1rem' }}>
-                  {quizzes.map((q) => (
-                    <div key={q._id} className="quiz-card">
-                      <div className="quiz-card-header" style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem' }}>
-                        <div>
-                          <h3 className="quiz-card-title">{q.title}</h3>
-                          <p className="quiz-card-desc">{q.isPublished ? 'Published' : (q.isFreePreview ? 'Free preview' : 'Draft/Locked')}</p>
-                        </div>
-                        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                          <button className="btn-outline-alt" type="button" onClick={() => startEdit(q)} disabled={loading}>Edit</button>
-                          <button className="btn-outline-alt" type="button" onClick={() => handleDelete(q._id)} disabled={loading}>Delete</button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+        <div className="container mx-auto px-6 py-10 relative z-10">
+          <div className="mb-8">
+            <p className="text-sm uppercase tracking-[0.2em] text-cyan-200/70">Instructor</p>
+            <h1 className="text-3xl sm:text-4xl font-semibold mt-2">Quizzes Manager</h1>
+            <p className="text-slate-300 mt-2">Course: {courseId}</p>
           </div>
 
-          <div>
-            <div className="dashboard-section" style={{ marginTop: '0' }}>
-              <div className="dashboard-section-header">
-                <div>
-                  <h2 className="dashboard-section-title">{mode === 'create' ? 'Create Quiz' : 'Edit Quiz'}</h2>
-                  <p className="dashboard-section-desc">Build questions in the same format as QuizDetail.</p>
+          {error ? (
+            <div className="rounded-2xl border border-red-400/30 bg-red-500/10 p-6 mb-6">
+              <p className="text-red-200">{error}</p>
+            </div>
+          ) : null}
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div>
+              <div className="rounded-2xl bg-white/5 ring-1 ring-white/10 p-6 shadow-xl shadow-slate-950/10">
+                <div className="flex items-center justify-between gap-4 mb-6">
+                  <div>
+                    <h2 className="text-xl font-semibold">Existing Quizzes</h2>
+                    <p className="text-sm text-slate-300 mt-1">Edit, publish, or delete.</p>
+                  </div>
+                  <button
+                    onClick={resetForm}
+                    className="inline-flex items-center justify-center px-4 py-2 rounded-xl border border-white/10 hover:border-cyan-400/40 bg-white/5 hover:bg-white/10 transition text-sm font-medium"
+                    type="button"
+                    disabled={loading}
+                  >
+                    + New Quiz
+                  </button>
                 </div>
-              </div>
 
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  handleSave();
-                }}
-                style={{ marginTop: '1rem' }}
-              >
-                <div className="form-grid">
-                  <div className="form-field" style={{ gridColumn: '1 / -1' }}>
-                    <label className="form-label">Quiz Title *</label>
-                    <input
-                      className="form-input"
-                      value={form.title}
-                      onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
-                      required
-                    />
+                {loading && quizzes.length === 0 ? (
+                  <div className="rounded-xl bg-white/5 border border-white/10 p-6">
+                    <p className="text-slate-300">Loading quizzes...</p>
                   </div>
-
-                  <div className="form-field">
-                    <label className="form-label">Passing Score (%)</label>
-                    <input
-                      className="form-input"
-                      type="number"
-                      value={form.passingScore}
-                      onChange={(e) => setForm((f) => ({ ...f, passingScore: Number(e.target.value) }))}
-                    />
+                ) : quizzes.length === 0 ? (
+                  <div className="rounded-xl border border-white/10 bg-white/5 p-6 text-center">
+                    <h2 className="text-lg font-semibold">No quizzes yet</h2>
+                    <p className="text-sm text-slate-300 mt-2">Create your first quiz.</p>
                   </div>
-
-                  <div className="form-field">
-                    <label className="form-label">Time Limit (mins)</label>
-                    <input
-                      className="form-input"
-                      type="number"
-                      value={form.timeLimit}
-                      onChange={(e) => setForm((f) => ({ ...f, timeLimit: Number(e.target.value) }))}
-                    />
-                  </div>
-
-                  <div className="form-field">
-                    <label className="form-label">Free Preview</label>
-                    <select
-                      className="form-input"
-                      value={form.isFreePreview ? 'yes' : 'no'}
-                      onChange={(e) => setForm((f) => ({ ...f, isFreePreview: e.target.value === 'yes' }))}
-                    >
-                      <option value="no">No</option>
-                      <option value="yes">Yes</option>
-                    </select>
-                  </div>
-
-                  <div className="form-field">
-                    <label className="form-label">Published</label>
-                    <select
-                      className="form-input"
-                      value={form.isPublished ? 'yes' : 'no'}
-                      onChange={(e) => setForm((f) => ({ ...f, isPublished: e.target.value === 'yes' }))}
-                    >
-                      <option value="no">No</option>
-                      <option value="yes">Yes</option>
-                    </select>
-                  </div>
-
-                  <div className="form-field" style={{ gridColumn: '1 / -1' }}>
-                    <label className="form-label">Questions</label>
-                    <div className="space-y-4">
-                      {form.questions.map((q, qIdx) => (
-                        <div key={qIdx} className="quiz-card" style={{ padding: '1rem' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
-                            <h3 className="quiz-card-title">Question {qIdx + 1}</h3>
+                ) : (
+                  <div className="space-y-3">
+                    {quizzes.map((q) => (
+                      <div key={q._id} className="rounded-xl bg-white/5 border border-white/10 p-4">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1">
+                            <h3 className="text-base font-semibold text-white">{q.title}</h3>
+                            <p className="text-xs text-slate-300 mt-1">
+                              {q.isPublished ? 'Published' : q.isFreePreview ? 'Free preview' : 'Draft/Locked'}
+                            </p>
+                          </div>
+                          <div className="flex gap-2">
                             <button
-                              className="btn-outline-alt"
                               type="button"
-                              onClick={() => removeQuestion(qIdx)}
-                              disabled={form.questions.length <= 1}
+                              onClick={() => startEdit(q)}
+                              disabled={loading}
+                              className="inline-flex items-center justify-center px-3 py-1.5 rounded-lg border border-white/10 hover:border-cyan-400/40 bg-white/5 hover:bg-white/10 transition text-xs font-medium"
                             >
-                              Remove
+                              Edit
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDelete(q._id)}
+                              disabled={loading}
+                              className="inline-flex items-center justify-center px-3 py-1.5 rounded-lg border border-red-400/30 hover:border-red-400/50 bg-red-500/10 hover:bg-red-500/20 transition text-xs font-medium text-red-200"
+                            >
+                              Delete
                             </button>
                           </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
 
-                          <div className="form-grid" style={{ marginTop: '0.75rem' }}>
-                            <div className="form-field" style={{ gridColumn: '1 / -1' }}>
-                              <label className="form-label">Question Text</label>
-                              <input
-                                className="form-input"
-                                value={q.question}
-                                onChange={(e) => updateQuestion(qIdx, { question: e.target.value })}
-                              />
+            <div>
+              <div className="rounded-2xl bg-white/5 ring-1 ring-white/10 p-6 shadow-xl shadow-slate-950/10">
+                <div className="mb-6">
+                  <h2 className="text-xl font-semibold">{mode === 'create' ? 'Create Quiz' : 'Edit Quiz'}</h2>
+                  <p className="text-sm text-slate-300 mt-1">Build questions in the same format as QuizDetail.</p>
+                </div>
+
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    handleSave();
+                  }}
+                >
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-200 mb-2">Quiz Title *</label>
+                      <input
+                        className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-400 focus:outline-none focus:border-cyan-400/50 focus:ring-1 focus:ring-cyan-400/50 transition"
+                        value={form.title}
+                        onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
+                        required
+                        placeholder="Enter quiz title"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-slate-200 mb-2">Passing Score (%)</label>
+                        <input
+                          className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-400 focus:outline-none focus:border-cyan-400/50 focus:ring-1 focus:ring-cyan-400/50 transition"
+                          type="number"
+                          value={form.passingScore}
+                          onChange={(e) => setForm((f) => ({ ...f, passingScore: Number(e.target.value) }))}
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-slate-200 mb-2">Time Limit (mins)</label>
+                        <input
+                          className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-400 focus:outline-none focus:border-cyan-400/50 focus:ring-1 focus:ring-cyan-400/50 transition"
+                          type="number"
+                          value={form.timeLimit}
+                          onChange={(e) => setForm((f) => ({ ...f, timeLimit: Number(e.target.value) }))}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-slate-200 mb-2">Free Preview</label>
+                        <select
+                          className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyan-400/50 focus:ring-1 focus:ring-cyan-400/50 transition"
+                          value={form.isFreePreview ? 'yes' : 'no'}
+                          onChange={(e) => setForm((f) => ({ ...f, isFreePreview: e.target.value === 'yes' }))}
+                        >
+                          <option value="no">No</option>
+                          <option value="yes">Yes</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-slate-200 mb-2">Published</label>
+                        <select
+                          className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-cyan-400/50 focus:ring-1 focus:ring-cyan-400/50 transition"
+                          value={form.isPublished ? 'yes' : 'no'}
+                          onChange={(e) => setForm((f) => ({ ...f, isPublished: e.target.value === 'yes' }))}
+                        >
+                          <option value="no">No</option>
+                          <option value="yes">Yes</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-slate-200 mb-2">Questions</label>
+                      <div className="space-y-4">
+                        {form.questions.map((q, qIdx) => (
+                          <div key={qIdx} className="rounded-xl bg-white/5 border border-white/10 p-4">
+                            <div className="flex items-center justify-between gap-4 mb-4">
+                              <h3 className="text-base font-semibold">Question {qIdx + 1}</h3>
+                              <button
+                                type="button"
+                                onClick={() => removeQuestion(qIdx)}
+                                disabled={form.questions.length <= 1}
+                                className="inline-flex items-center justify-center px-3 py-1.5 rounded-lg border border-red-400/30 hover:border-red-400/50 bg-red-500/10 hover:bg-red-500/20 transition text-xs font-medium text-red-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                Remove
+                              </button>
                             </div>
 
-                            {[0, 1, 2, 3].map((optIdx) => (
-                              <div key={optIdx} className="form-field">
-                                <label className="form-label">Option {String.fromCharCode(65 + optIdx)}</label>
+                            <div className="space-y-3">
+                              <div>
+                                <label className="block text-sm font-medium text-slate-200 mb-2">Question Text</label>
                                 <input
-                                  className="form-input"
-                                  value={q.options[optIdx]}
-                                  onChange={(e) => handleChangeOption(qIdx, optIdx, e.target.value)}
+                                  className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-400 focus:outline-none focus:border-cyan-400/50 focus:ring-1 focus:ring-cyan-400/50 transition"
+                                  value={q.question}
+                                  onChange={(e) => updateQuestion(qIdx, { question: e.target.value })}
+                                  placeholder="Enter question"
                                 />
-                                <div style={{ marginTop: '0.5rem' }}>
-                                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem' }}>
-                                    <input
-                                      type="radio"
-                                      name={`correct-${qIdx}`}
-                                      checked={q.correctAnswer === optIdx}
-                                      onChange={() => handleSetCorrect(qIdx, optIdx)}
-                                    />
-                                    Correct
-                                  </label>
-                                </div>
                               </div>
-                            ))}
-                          </div>
-                        </div>
-                      ))}
 
-                      <button className="btn-outline-alt" type="button" onClick={addQuestion} disabled={loading}>
-                        + Add Question
-                      </button>
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                {[0, 1, 2, 3].map((optIdx) => (
+                                  <div key={optIdx}>
+                                    <label className="block text-sm font-medium text-slate-200 mb-2">Option {String.fromCharCode(65 + optIdx)}</label>
+                                    <input
+                                      className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder-slate-400 focus:outline-none focus:border-cyan-400/50 focus:ring-1 focus:ring-cyan-400/50 transition"
+                                      value={q.options[optIdx]}
+                                      onChange={(e) => handleChangeOption(qIdx, optIdx, e.target.value)}
+                                      placeholder={`Option ${String.fromCharCode(65 + optIdx)}`}
+                                    />
+                                    <div className="mt-2">
+                                      <label className="flex items-center gap-2 text-sm text-slate-300 cursor-pointer">
+                                        <input
+                                          type="radio"
+                                          name={`correct-${qIdx}`}
+                                          checked={q.correctAnswer === optIdx}
+                                          onChange={() => handleSetCorrect(qIdx, optIdx)}
+                                          className="w-4 h-4 rounded border-white/20 bg-white/5 text-cyan-500 focus:ring-cyan-500/50"
+                                        />
+                                        Correct answer
+                                      </label>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+
+                        <button
+                          type="button"
+                          onClick={addQuestion}
+                          disabled={loading}
+                          className="w-full inline-flex items-center justify-center px-4 py-2.5 rounded-xl border border-white/10 hover:border-cyan-400/40 bg-white/5 hover:bg-white/10 transition text-sm font-medium"
+                        >
+                          + Add Question
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <div className="form-actions" style={{ marginTop: '1rem' }}>
-                  <button className="btn-outline-alt" type="button" onClick={resetForm} disabled={loading}>
-                    Cancel
-                  </button>
-                  <button className="btn-action" type="submit" disabled={loading}>
-                    {loading ? 'Saving...' : (mode === 'create' ? 'Create Quiz' : 'Update Quiz')}
-                  </button>
-                </div>
-              </form>
+                  <div className="flex gap-3 mt-6">
+                    <button
+                      type="button"
+                      onClick={resetForm}
+                      disabled={loading}
+                      className="flex-1 inline-flex items-center justify-center px-4 py-2.5 rounded-xl border border-white/10 hover:border-cyan-400/40 bg-white/5 hover:bg-white/10 transition text-sm font-medium"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="flex-1 inline-flex items-center justify-center px-4 py-2.5 rounded-xl bg-cyan-500 text-slate-950 font-semibold hover:bg-cyan-400 transition text-sm disabled:opacity-60"
+                    >
+                      {loading ? 'Saving...' : mode === 'create' ? 'Create Quiz' : 'Update Quiz'}
+                    </button>
+                  </div>
+                </form>
+              </div>
             </div>
           </div>
         </div>
