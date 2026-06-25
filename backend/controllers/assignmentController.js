@@ -5,7 +5,8 @@ import Notification from '../models/Notification.js';
 // Get assignments for a course
 export const getAssignmentsByCourse = async (req, res) => {
   try {
-    const { courseId } = req.params;
+    const courseId = req.params.id || req.params.courseId;
+    console.log('getAssignmentsByCourse called with courseId:', courseId);
     const isInstructorOrAdmin = req.user?.role === 'admin' || req.user?.role === 'instructor';
 
     const course = await Course.findById(courseId);
@@ -385,6 +386,39 @@ export const getAllCourseSubmissions = async (req, res) => {
         });
       }
     }
+
+    res.status(200).json({ success: true, data: submissions });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Instructor/admin: get submissions for a specific assignment
+export const getAssignmentSubmissions = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const assignment = await Assignment.findById(id).populate('course instructor').populate('submissions.student', 'name email');
+
+    if (!assignment) {
+      return res.status(404).json({ success: false, message: 'Assignment not found' });
+    }
+
+    // Role-based access: instructor/admin only
+    const isInstructorOrAdmin = req.user?.role === 'instructor' || req.user?.role === 'admin';
+    if (!isInstructorOrAdmin) {
+      return res.status(403).json({ success: false, message: 'Not authorized' });
+    }
+
+    // Ownership check: instructor must own the course
+    if (req.user?.role !== 'admin') {
+      const isOwner = assignment.course?.instructor?.toString() === req.user.id;
+      if (!isOwner) {
+        return res.status(403).json({ success: false, message: 'Not authorized' });
+      }
+    }
+
+    const submissions = Array.isArray(assignment.submissions) ? assignment.submissions : [];
 
     res.status(200).json({ success: true, data: submissions });
   } catch (error) {

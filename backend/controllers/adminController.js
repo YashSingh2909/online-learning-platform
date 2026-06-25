@@ -5,6 +5,10 @@ import bcrypt from 'bcryptjs';
 
 import Quiz from '../models/Quiz.js';
 import Assignment from '../models/Assignment.js';
+import Certificate from '../models/Certificate.js';
+import Progress from '../models/Progress.js';
+import path from 'path';
+import fs from 'fs';
 
 
 
@@ -443,6 +447,1256 @@ export const getAdminAllSubmissions = async (req, res) => {
     return res.status(200).json({ success: true, data: submissions.slice(0, Number(limit)) });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// ==========================
+// Admin: Student Details
+// ==========================
+export const getStudentDetails = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = await User.findById(id).select('-password');
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    // Get enrollments with course details
+    const enrollments = await Enrollment.find({ student: id })
+      .populate('course', 'title instructor thumbnail status');
+
+    // Get progress records
+    const progressRecords = await Progress.find({ student: id })
+      .populate('course', 'title');
+
+    // Get quiz attempts across all courses
+    const quizAttempts = [];
+    const quizzes = await Quiz.find({ 'attempts.student': id });
+    for (const quiz of quizzes) {
+      const attempts = quiz.attempts.filter(a => a.student.toString() === id);
+      for (const attempt of attempts) {
+        quizAttempts.push({
+          quizId: quiz._id,
+          quizTitle: quiz.title,
+          courseId: quiz.course,
+          score: attempt.score,
+          attemptedAt: attempt.attemptedAt,
+          timeTaken: attempt.timeTaken,
+        });
+      }
+    }
+
+    // Get assignment submissions
+    const assignmentSubmissions = [];
+    const assignments = await Assignment.find({ 'submissions.student': id })
+      .populate('course', 'title');
+    for (const assignment of assignments) {
+      const submissions = assignment.submissions.filter(s => s.student.toString() === id);
+      for (const submission of submissions) {
+        assignmentSubmissions.push({
+          assignmentId: assignment._id,
+          assignmentTitle: assignment.title,
+          courseId: assignment.course._id,
+          courseTitle: assignment.course.title,
+          status: submission.status,
+          score: submission.score,
+          feedback: submission.feedback,
+          submittedAt: submission.submittedAt,
+          gradedAt: submission.gradedAt,
+        });
+      }
+    }
+
+    // Get certificates
+    const certificates = await Certificate.find({ student: id })
+      .populate('course', 'title');
+
+    res.status(200).json({
+      success: true,
+      data: {
+        user,
+        enrollments,
+        progressRecords,
+        quizAttempts,
+        assignmentSubmissions,
+        certificates,
+      },
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// ==========================
+// Admin: Student Progress Detail
+// ==========================
+export const getStudentProgress = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { courseId } = req.query;
+
+    let query = { student: id };
+    if (courseId) query.course = courseId;
+
+    const progressRecords = await Progress.find(query)
+      .populate('course', 'title description instructor');
+
+    res.status(200).json({ success: true, data: progressRecords });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// ==========================
+// Admin: Instructor Details
+// ==========================
+export const getInstructorDetails = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const instructor = await User.findById(id).select('-password');
+    if (!instructor) {
+      return res.status(404).json({ success: false, message: 'Instructor not found' });
+    }
+
+    if (instructor.role !== 'instructor' && instructor.role !== 'admin') {
+      return res.status(400).json({ success: false, message: 'User is not an instructor' });
+    }
+
+    // Get courses created by this instructor
+    const courses = await Course.find({ instructor: id })
+      .select('title status isPublished students createdAt');
+
+    // Get total enrollments across instructor's courses
+    const courseIds = courses.map(c => c._id);
+    const enrollments = await Enrollment.find({ course: { $in: courseIds } })
+      .populate('student', 'name email')
+      .populate('course', 'title');
+
+    // Get quizzes created
+    const quizzes = await Quiz.find({ course: { $in: courseIds } })
+      .select('title course totalPoints passingScore');
+
+    // Get assignments created
+    const assignments = await Assignment.find({ course: { $in: courseIds } })
+      .select('title course dueDate totalPoints');
+
+    // Calculate activity metrics
+    const totalStudents = enrollments.length;
+    const avgCourseStudents = courses.length > 0 ? (courses.reduce((sum, c) => sum + (c.students || 0), 0) / courses.length) : 0;
+
+    res.status(200).json({
+      success: true,
+      data: {
+        instructor,
+        courses,
+        enrollments,
+        quizzes,
+        assignments,
+        metrics: {
+          totalCourses: courses.length,
+          totalStudents,
+          avgCourseStudents: Math.round(avgCourseStudents * 10) / 10,
+          totalQuizzes: quizzes.length,
+          totalAssignments: assignments.length,
+        },
+      },
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// ==========================
+// Admin: Transfer Course Ownership
+// ==========================
+export const transferCourseOwnership = async (req, res) => {
+  try {
+    const { courseId } = req.params;
+    const { newInstructorId } = req.body;
+
+    const course = await Course.findById(courseId);
+    if (!course) {
+      return res.status(404).json({ success: false, message: 'Course not found' });
+    }
+
+    const newInstructor = await User.findById(newInstructorId);
+    if (!newInstructor) {
+      return res.status(404).json({ success: false, message: 'New instructor not found' });
+    }
+
+    if (newInstructor.role !== 'instructor' && newInstructor.role !== 'admin') {
+      return res.status(400).json({ success: false, message: 'User is not an instructor' });
+    }
+
+    const oldInstructorId = course.instructor;
+
+    // Update course instructor
+    course.instructor = newInstructorId;
+    await course.save();
+
+    // Update createdCourses arrays for both instructors
+    await User.findByIdAndUpdate(oldInstructorId, { $pull: { createdCourses: courseId } });
+    await User.findByIdAndUpdate(newInstructorId, { $addToSet: { createdCourses: courseId } });
+
+    // Update assignments instructor
+    await Assignment.updateMany({ course: courseId }, { instructor: newInstructorId });
+
+    res.status(200).json({
+      success: true,
+      message: 'Course ownership transferred successfully',
+      data: course,
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// ==========================
+// Admin: Certificate Management
+// ==========================
+export const getAllCertificates = async (req, res) => {
+  try {
+    const { studentId, courseId, page = 1, limit = 20 } = req.query;
+
+    let query = {};
+    if (studentId) query.userId = studentId;
+    if (courseId) query.courseId = courseId;
+
+    const certificates = await Certificate.find(query)
+      .populate('userId', 'name email')
+      .populate('courseId', 'title')
+      .populate('enrollmentId')
+      .sort({ completionDate: -1 })
+      .skip((page - 1) * limit)
+      .limit(Number(limit));
+
+    const total = await Certificate.countDocuments(query);
+
+    res.status(200).json({
+      success: true,
+      data: certificates,
+      pagination: {
+        page: Number(page),
+        limit: Number(limit),
+        total,
+        pages: Math.ceil(total / limit),
+      },
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const getCertificateById = async (req, res) => {
+  try {
+    const certificate = await Certificate.findById(req.params.id)
+      .populate('userId', 'name email')
+      .populate('courseId', 'title')
+      .populate('enrollmentId');
+
+    if (!certificate) {
+      return res.status(404).json({ success: false, message: 'Certificate not found' });
+    }
+
+    res.status(200).json({ success: true, data: certificate });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const regenerateCertificate = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const certificate = await Certificate.findById(id);
+
+    if (!certificate) {
+      return res.status(404).json({ success: false, message: 'Certificate not found' });
+    }
+
+    // Import certificate generation utilities
+    const { generateCertificate } = await import('../utils/certificateUtils.js');
+    const { randomUUID } = await import('crypto');
+    const fs = await import('fs');
+    const path = await import('path');
+
+    // Generate new certificate
+    const newCertificateId = randomUUID();
+    const filePath = await generateCertificate(
+      certificate.studentName,
+      certificate.courseTitle,
+      certificate.completionDate,
+      newCertificateId
+    );
+
+    if (!filePath) {
+      return res.status(500).json({ success: false, message: 'Failed to generate certificate PDF' });
+    }
+
+    // Update certificate record
+    certificate.certificateId = newCertificateId;
+    certificate.pdfUrl = `/certificates/${path.basename(filePath)}`;
+    certificate.regeneratedAt = new Date();
+    certificate.regeneratedCount = (certificate.regeneratedCount || 0) + 1;
+    await certificate.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Certificate regenerated successfully',
+      data: certificate,
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const reissueCertificate = async (req, res) => {
+  try {
+    const { enrollmentId } = req.body;
+
+    const enrollment = await Enrollment.findById(enrollmentId)
+      .populate('student')
+      .populate('course');
+
+    if (!enrollment) {
+      return res.status(404).json({ success: false, message: 'Enrollment not found' });
+    }
+
+    // Check if certificate already exists
+    const existingCertificate = await Certificate.findOne({ enrollmentId: enrollment._id });
+    if (existingCertificate) {
+      return res.status(400).json({ success: false, message: 'Certificate already exists for this enrollment' });
+    }
+
+    // Import certificate generation
+    const { generateCourseCertificate } = await import('./certificateController.js');
+
+    // Use existing certificate generation logic
+    req.user = { id: enrollment.student._id, role: 'admin' }; // Temporarily set user for auth
+    req.body = { enrollmentId };
+
+    return generateCourseCertificate(req, res);
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const deleteCertificate = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const certificate = await Certificate.findById(id);
+
+    if (!certificate) {
+      return res.status(404).json({ success: false, message: 'Certificate not found' });
+    }
+
+    // Update enrollment record
+    await Enrollment.findByIdAndUpdate(certificate.enrollmentId, {
+      certificateReceived: false,
+      certificateDate: null,
+    });
+
+    // Delete certificate record
+    await Certificate.findByIdAndDelete(id);
+
+    res.status(200).json({ success: true, message: 'Certificate deleted successfully' });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// ==========================
+// Admin: Quiz Control Center
+// ==========================
+export const getAllQuizzes = async (req, res) => {
+  try {
+    const { page = 1, limit = 20, courseId } = req.query;
+
+    let query = {};
+    if (courseId) query.course = courseId;
+
+    const quizzes = await Quiz.find(query)
+      .populate('course', 'title instructor')
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(Number(limit));
+
+    const total = await Quiz.countDocuments(query);
+
+    // Enrich with quiz statistics
+    const enrichedQuizzes = quizzes.map(quiz => {
+      const attempts = quiz.attempts || [];
+      const totalAttempts = attempts.length;
+      const passedCount = attempts.filter(a => a.score >= quiz.passingScore).length;
+      const failedCount = totalAttempts - passedCount;
+      const avgScore = totalAttempts > 0 
+        ? attempts.reduce((sum, a) => sum + (a.score || 0), 0) / totalAttempts 
+        : 0;
+
+      return {
+        ...quiz.toObject(),
+        statistics: {
+          totalAttempts,
+          passedCount,
+          failedCount,
+          avgScore: Math.round(avgScore * 10) / 10,
+        }
+      };
+    });
+
+    res.status(200).json({
+      success: true,
+      data: enrichedQuizzes,
+      pagination: {
+        page: Number(page),
+        limit: Number(limit),
+        total,
+        pages: Math.ceil(total / limit),
+      },
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const getQuizAttemptsAdmin = async (req, res) => {
+  try {
+    const { quizId } = req.params;
+    const quiz = await Quiz.findById(quizId).populate('course', 'title');
+
+    if (!quiz) {
+      return res.status(404).json({ success: false, message: 'Quiz not found' });
+    }
+
+    // Populate student information for all attempts
+    const attemptsWithStudents = await Promise.all(
+      quiz.attempts.map(async (attempt) => {
+        const student = await User.findById(attempt.student).select('name email');
+        return {
+          ...attempt.toObject(),
+          student,
+          quizTitle: quiz.title,
+          courseTitle: quiz.course?.title,
+          courseId: quiz.course?._id,
+          passingScore: quiz.passingScore,
+          totalPoints: quiz.totalPoints,
+        };
+      })
+    );
+
+    res.status(200).json({
+      success: true,
+      data: attemptsWithStudents,
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const resetQuizAttempt = async (req, res) => {
+  try {
+    const { quizId, attemptId } = req.params;
+    const quiz = await Quiz.findById(quizId);
+
+    if (!quiz) {
+      return res.status(404).json({ success: false, message: 'Quiz not found' });
+    }
+
+    const attemptIndex = quiz.attempts.findIndex(a => a._id.toString() === attemptId);
+    if (attemptIndex === -1) {
+      return res.status(404).json({ success: false, message: 'Attempt not found' });
+    }
+
+    quiz.attempts.splice(attemptIndex, 1);
+    await quiz.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Quiz attempt reset successfully',
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const deleteQuizAdmin = async (req, res) => {
+  try {
+    const { quizId } = req.params;
+    const quiz = await Quiz.findById(quizId);
+    
+    if (!quiz) {
+      return res.status(404).json({ success: false, message: 'Quiz not found' });
+    }
+
+    await Quiz.findByIdAndDelete(quizId);
+
+    res.status(200).json({ success: true, message: 'Quiz deleted successfully' });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// ==========================
+// Admin: Assignment Control Center
+// ==========================
+export const getAllAssignments = async (req, res) => {
+  try {
+    const { page = 1, limit = 20, courseId, search } = req.query;
+
+    let query = {};
+    
+    // Filter by course ID if provided
+    if (courseId) {
+      query.course = courseId;
+    }
+    
+    // If search term is provided, find assignments where course title matches
+    if (search && !courseId) {
+      const courses = await Course.find({ title: { $regex: search, $options: 'i' } }).select('_id');
+      const courseIds = courses.map(c => c._id);
+      if (courseIds.length > 0) {
+        query.course = { $in: courseIds };
+      } else {
+        // If no courses match, return empty results
+        return res.status(200).json({
+          success: true,
+          data: [],
+          pagination: {
+            page: Number(page),
+            limit: Number(limit),
+            total: 0,
+            pages: 0,
+          },
+        });
+      }
+    }
+
+    const assignments = await Assignment.find(query)
+      .populate('course', 'title instructor')
+      .populate('instructor', 'name email')
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(Number(limit));
+
+    const total = await Assignment.countDocuments(query);
+
+    // Enrich with assignment statistics
+    const enrichedAssignments = assignments.map(assignment => {
+      const submissions = assignment.submissions || [];
+      const totalSubmissions = submissions.length;
+      const gradedCount = submissions.filter(s => s.status === 'graded').length;
+      const pendingCount = submissions.filter(s => s.status === 'submitted').length;
+      
+      // Calculate average score from graded submissions only
+      const gradedSubmissions = submissions.filter(s => s.status === 'graded' && s.score !== undefined && s.score !== null);
+      const maxPoints = assignment.maxScore || assignment.totalPoints || 100;
+      
+      // Normalize scores to percentage and calculate average
+      const avgScore = gradedSubmissions.length > 0 
+        ? (gradedSubmissions.reduce((sum, s) => sum + (s.score / maxPoints * 100), 0) / gradedSubmissions.length)
+        : 0;
+
+      return {
+        ...assignment.toObject(),
+        course: assignment.course ? {
+          _id: assignment.course._id,
+          title: assignment.course.title,
+          instructor: assignment.course.instructor
+        } : null,
+        statistics: {
+          totalSubmissions,
+          gradedCount,
+          pendingCount,
+          avgScore: Math.round(avgScore * 10) / 10,
+        }
+      }
+    });
+
+    res.status(200).json({
+      success: true,
+      data: enrichedAssignments,
+      pagination: {
+        page: Number(page),
+        limit: Number(limit),
+        total,
+        pages: Math.ceil(total / limit),
+      },
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const overrideAssignmentGrade = async (req, res) => {
+  try {
+    const { assignmentId, submissionId } = req.params;
+    const { score, feedback } = req.body;
+
+    const assignment = await Assignment.findById(assignmentId);
+    if (!assignment) {
+      return res.status(404).json({ success: false, message: 'Assignment not found' });
+    }
+
+    const submission = assignment.submissions.id(submissionId);
+    if (!submission) {
+      return res.status(404).json({ success: false, message: 'Submission not found' });
+    }
+
+    submission.score = score;
+    submission.feedback = feedback;
+    submission.status = 'graded';
+    submission.gradedAt = new Date();
+    submission.gradeOverridden = true;
+    submission.overriddenBy = req.user.id;
+
+    await assignment.save();
+
+    // Recalculate progress
+    try {
+      const enrollment = await Enrollment.findOne({
+        student: submission.student,
+        course: assignment.course,
+      });
+      if (enrollment) {
+        const course = await Course.findById(assignment.course);
+        const enrollmentCtrl = await import('./enrollmentController.js');
+        await enrollmentCtrl.recalculateEnrollmentProgress({ enrollment, course });
+      }
+    } catch (e) {
+      console.error('Progress recalculation after grade override failed:', e);
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Grade overridden successfully',
+      data: assignment,
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const deleteAssignmentAdmin = async (req, res) => {
+  try {
+    const { assignmentId } = req.params;
+    const assignment = await Assignment.findById(assignmentId);
+    
+    if (!assignment) {
+      return res.status(404).json({ success: false, message: 'Assignment not found' });
+    }
+
+    await Assignment.findByIdAndDelete(assignmentId);
+
+    res.status(200).json({ success: true, message: 'Assignment deleted successfully' });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// ==========================
+// Admin: Enrollment Management
+// ==========================
+export const getAllEnrollments = async (req, res) => {
+  try {
+    const { page = 1, limit = 20, courseId, studentId } = req.query;
+
+    let query = {};
+    if (courseId) query.course = courseId;
+    if (studentId) query.student = studentId;
+
+    const enrollments = await Enrollment.find(query)
+      .populate('student', 'name email')
+      .populate('course', 'title instructor thumbnail status')
+      .sort({ enrolledAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(Number(limit));
+
+    // Get certificate information for each enrollment
+    const enrollmentIds = enrollments.map(e => e._id);
+    const certificates = await Certificate.find({ enrollmentId: { $in: enrollmentIds } });
+    
+    // Create a map of enrollmentId to certificate
+    const certificateMap = {};
+    certificates.forEach(cert => {
+      certificateMap[cert.enrollmentId.toString()] = cert;
+    });
+
+    // Add certificate information to each enrollment
+    const enrollmentsWithCert = enrollments.map(enrollment => {
+      const cert = certificateMap[enrollment._id.toString()];
+      return {
+        ...enrollment.toObject(),
+        certificateId: cert ? cert._id : null,
+        certificateReceived: !!cert,
+        certificateDate: cert ? cert.completionDate : null,
+      };
+    });
+
+    const total = await Enrollment.countDocuments(query);
+
+    res.status(200).json({
+      success: true,
+      data: enrollmentsWithCert,
+      pagination: {
+        page: Number(page),
+        limit: Number(limit),
+        total,
+        pages: Math.ceil(total / limit),
+      },
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const manualEnrollStudent = async (req, res) => {
+  try {
+    const { courseId, studentId } = req.body;
+
+    const course = await Course.findById(courseId);
+    if (!course) {
+      return res.status(404).json({ success: false, message: 'Course not found' });
+    }
+
+    const student = await User.findById(studentId);
+    if (!student) {
+      return res.status(404).json({ success: false, message: 'Student not found' });
+    }
+
+    if (student.role !== 'student') {
+      return res.status(400).json({ success: false, message: 'User is not a student' });
+    }
+
+    // Check if already enrolled
+    const existingEnrollment = await Enrollment.findOne({
+      student: studentId,
+      course: courseId,
+    });
+
+    if (existingEnrollment) {
+      return res.status(400).json({ success: false, message: 'Student already enrolled in this course' });
+    }
+
+    // Create enrollment
+    const enrollment = await Enrollment.create({
+      student: studentId,
+      course: courseId,
+      status: 'active',
+      progress: 0,
+      completedLessons: [],
+    });
+
+    // Update user's enrolled courses
+    await User.findByIdAndUpdate(studentId, {
+      $addToSet: { enrolledCourses: courseId },
+    });
+
+    // Update course student count
+    await Course.findByIdAndUpdate(courseId, {
+      $inc: { students: 1 },
+    });
+
+    res.status(201).json({
+      success: true,
+      message: 'Student enrolled successfully',
+      data: enrollment,
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const removeEnrollment = async (req, res) => {
+  try {
+    const { enrollmentId } = req.params;
+
+    const enrollment = await Enrollment.findById(enrollmentId);
+    if (!enrollment) {
+      return res.status(404).json({ success: false, message: 'Enrollment not found' });
+    }
+
+    const courseId = enrollment.course;
+    const studentId = enrollment.student;
+
+    // Remove enrollment
+    await Enrollment.findByIdAndDelete(enrollmentId);
+
+    // Update user's enrolled courses
+    await User.findByIdAndUpdate(studentId, {
+      $pull: { enrolledCourses: courseId },
+    });
+
+    // Update course student count
+    await Course.findByIdAndUpdate(courseId, {
+      $inc: { students: -1 },
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Enrollment removed successfully',
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const resetStudentProgress = async (req, res) => {
+  try {
+    const { enrollmentId } = req.params;
+
+    const enrollment = await Enrollment.findById(enrollmentId);
+    if (!enrollment) {
+      return res.status(404).json({ success: false, message: 'Enrollment not found' });
+    }
+
+    // Reset progress
+    enrollment.progress = 0;
+    enrollment.completedLessons = [];
+    enrollment.status = 'active';
+    enrollment.certificateReceived = false;
+    enrollment.certificateDate = null;
+
+    await enrollment.save();
+
+    // Delete associated certificate if exists
+    await Certificate.findOneAndDelete({ enrollmentId: enrollment._id });
+
+    res.status(200).json({
+      success: true,
+      message: 'Student progress reset successfully',
+      data: enrollment,
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// ==========================
+// Admin: Course Analytics
+// ==========================
+export const getCourseAnalytics = async (req, res) => {
+  try {
+    const { courseId } = req.params;
+
+    const course = await Course.findById(courseId);
+    if (!course) {
+      return res.status(404).json({ success: false, message: 'Course not found' });
+    }
+
+    // Get enrollments with populated student data
+    const enrollments = await Enrollment.find({ course: courseId })
+      .populate('student', 'name email');
+    
+    const totalEnrollments = enrollments.length;
+    const completedEnrollments = enrollments.filter(e => e.status === 'completed').length;
+    const activeStudents = enrollments.filter(e => e.status === 'active').length;
+    const completionRate = totalEnrollments > 0 
+      ? Math.round((completedEnrollments / totalEnrollments) * 100) 
+      : 0;
+    
+    // Calculate average progress
+    const avgProgress = totalEnrollments > 0
+      ? enrollments.reduce((sum, e) => sum + (e.progress || 0), 0) / totalEnrollments
+      : 0;
+
+    // Get quizzes for this course with statistics
+    const quizzes = await Quiz.find({ course: courseId });
+    const quizStats = quizzes.map(quiz => {
+      const attempts = quiz.attempts || [];
+      const totalAttempts = attempts.length;
+      const passedAttempts = attempts.filter(a => a.passed).length;
+      const avgScore = totalAttempts > 0
+        ? attempts.reduce((sum, a) => sum + (a.score || 0), 0) / totalAttempts
+        : 0;
+      const passRate = totalAttempts > 0
+        ? Math.round((passedAttempts / totalAttempts) * 100)
+        : 0;
+
+      return {
+        quizId: quiz._id,
+        quizTitle: quiz.title,
+        totalAttempts,
+        avgScore: Math.round(avgScore * 10) / 10,
+        passRate,
+      };
+    });
+
+    // Get assignments for this course with statistics
+    const assignments = await Assignment.find({ course: courseId });
+    const assignmentStats = assignments.map(assignment => {
+      const submissions = assignment.submissions || [];
+      const totalSubmissions = submissions.length;
+      const gradedSubmissions = submissions.filter(s => s.status === 'graded');
+      const avgScore = gradedSubmissions.length > 0
+        ? gradedSubmissions.reduce((sum, s) => sum + (s.score || 0), 0) / gradedSubmissions.length
+        : 0;
+      const completionRate = totalEnrollments > 0
+        ? Math.round((totalSubmissions / totalEnrollments) * 100)
+        : 0;
+
+      return {
+        assignmentId: assignment._id,
+        assignmentTitle: assignment.title,
+        totalSubmissions,
+        avgScore: Math.round(avgScore * 10) / 10,
+        completionRate,
+      };
+    });
+
+    // Get lesson completion statistics
+    const lessonStats = course.lessons ? course.lessons.map(lesson => {
+      const completedCount = enrollments.filter(e => 
+        e.completedLessons && e.completedLessons.includes(lesson._id)
+      ).length;
+      const completionRate = totalEnrollments > 0
+        ? Math.round((completedCount / totalEnrollments) * 100)
+        : 0;
+
+      return {
+        lessonId: lesson._id,
+        lessonTitle: lesson.title,
+        completedCount,
+        completionRate,
+      };
+    }) : [];
+
+    // Get certificates issued
+    const certificatesIssued = await Certificate.countDocuments({ courseId });
+
+    res.status(200).json({
+      success: true,
+      data: {
+        totalEnrollments,
+        avgProgress: Math.round(avgProgress * 10) / 10,
+        completionRate,
+        activeStudents,
+        quizStats,
+        assignmentStats,
+        lessonStats,
+        certificatesIssued,
+      },
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// ==========================
+// Admin: Course Deep Management
+// ==========================
+export const getCourseDetailsAdmin = async (req, res) => {
+  try {
+    const { courseId } = req.params;
+    console.log('getCourseDetailsAdmin called with courseId:', courseId);
+    console.log('Request params:', req.params);
+
+    const course = await Course.findById(courseId)
+      .populate('instructor', 'name email');
+
+    console.log('Course found:', course);
+
+    if (!course) {
+      console.log('Course not found for ID:', courseId);
+      return res.status(404).json({ success: false, message: 'Course not found' });
+    }
+
+    // Get quizzes for this course
+    const quizzes = await Quiz.find({ course: courseId });
+
+    // Get assignments for this course
+    const assignments = await Assignment.find({ course: courseId })
+      .populate('instructor', 'name email');
+
+    // Get enrollments for this course
+    const enrollments = await Enrollment.find({ course: courseId })
+      .populate('student', 'name email');
+
+    // Calculate course statistics
+    const totalStudents = enrollments.length;
+    const avgProgress = enrollments.length > 0
+      ? enrollments.reduce((sum, e) => sum + (e.progress || 0), 0) / enrollments.length
+      : 0;
+
+    res.status(200).json({
+      success: true,
+      data: {
+        course: {
+          ...course.toObject(),
+          lessons: course.lessons || [],
+        },
+        content: {
+          lessons: course.lessons || [],
+          quizzes: quizzes,
+          assignments: assignments,
+        },
+        enrollments: {
+          total: totalStudents,
+          list: enrollments,
+          avgProgress: Math.round(avgProgress * 10) / 10,
+        },
+      },
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// ==========================
+// Admin: Enhanced Global Analytics
+// ==========================
+export const getEnhancedAnalytics = async (req, res) => {
+  try {
+    const { timeRange = '30' } = req.query; // days
+
+    const days = parseInt(timeRange);
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+
+    // Base counts
+    const [studentCount, instructorCount, adminCount, courseCount, enrollmentCount, quizCount, assignmentCount, certificateCount] = await Promise.all([
+      User.countDocuments({ role: 'student' }),
+      User.countDocuments({ role: 'instructor' }),
+      User.countDocuments({ role: 'admin' }),
+      Course.countDocuments(),
+      Enrollment.countDocuments(),
+      Quiz.countDocuments(),
+      Assignment.countDocuments(),
+      Certificate.countDocuments(),
+    ]);
+
+    // Enrollment trends over time
+    const enrollmentTrends = await Enrollment.aggregate([
+      {
+        $match: {
+          enrolledAt: { $gte: startDate },
+        },
+      },
+      {
+        $group: {
+          _id: {
+            $dateToString: { format: '%Y-%m-%d', date: '$enrolledAt' },
+          },
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $sort: { _id: 1 },
+      },
+    ]);
+
+    // Certificate issuance trends
+    const certificateTrends = await Certificate.aggregate([
+      {
+        $match: {
+          completionDate: { $gte: startDate },
+        },
+      },
+      {
+        $group: {
+          _id: {
+            $dateToString: { format: '%Y-%m-%d', date: '$completionDate' },
+          },
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $sort: { _id: 1 },
+      },
+    ]);
+
+    // Completion rate by course
+    const courseCompletionRates = await Course.aggregate([
+      {
+        $lookup: {
+          from: 'enrollments',
+          localField: '_id',
+          foreignField: 'course',
+          as: 'enrollments',
+        },
+      },
+      {
+        $project: {
+          title: 1,
+          totalEnrollments: { $size: '$enrollments' },
+          completedEnrollments: {
+            $size: {
+              $filter: {
+                input: '$enrollments',
+                as: 'enrollment',
+                cond: { $eq: ['$$enrollment.status', 'completed'] },
+              },
+            },
+          },
+        },
+      },
+      {
+        $project: {
+          title: 1,
+          totalEnrollments: 1,
+          completedEnrollments: 1,
+          completionRate: {
+            $cond: [
+              { $eq: ['$totalEnrollments', 0] },
+              0,
+              { $multiply: [{ $divide: ['$completedEnrollments', '$totalEnrollments'] }, 100] },
+            ],
+          },
+        },
+      },
+      {
+        $sort: { completionRate: -1 },
+      },
+      {
+        $limit: 10,
+      },
+    ]);
+
+    // Average quiz scores by course
+    const courseQuizStats = await Quiz.aggregate([
+      {
+        $lookup: {
+          from: 'courses',
+          localField: 'course',
+          foreignField: '_id',
+          as: 'course'
+        }
+      },
+      {
+        $unwind: '$course',
+      },
+      {
+        $unwind: '$attempts',
+      },
+      {
+        $group: {
+          _id: '$course._id',
+          courseTitle: { $first: '$course.title' },
+          totalAttempts: { $sum: 1 },
+          avgScore: { $avg: '$attempts.score' },
+        },
+      },
+      {
+        $sort: { avgScore: -1 },
+      },
+    ]);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        totals: {
+          users: studentCount + instructorCount + adminCount,
+          students: studentCount,
+          instructors: instructorCount,
+          admins: adminCount,
+          courses: courseCount,
+          enrollments: enrollmentCount,
+          quizzes: quizCount,
+          assignments: assignmentCount,
+          certificates: certificateCount,
+        },
+        trends: {
+          enrollments: enrollmentTrends,
+          certificates: certificateTrends,
+        },
+        courseMetrics: {
+          completionRates: courseCompletionRates,
+          quizStats: courseQuizStats,
+        },
+      },
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// ==========================
+// Admin: Issue Certificate (Manual)
+// ==========================
+export const issueCertificate = async (req, res) => {
+  try {
+    const { enrollmentId } = req.body;
+
+    const enrollment = await Enrollment.findById(enrollmentId)
+      .populate('student')
+      .populate('course');
+
+    if (!enrollment) {
+      return res.status(404).json({ success: false, message: 'Enrollment not found' });
+    }
+
+    // Check if certificate already exists
+    const existingCertificate = await Certificate.findOne({ enrollmentId: enrollment._id });
+    if (existingCertificate) {
+      return res.status(400).json({ success: false, message: 'Certificate already exists for this enrollment' });
+    }
+
+    // Import certificate generation
+    const { generateCourseCertificate } = await import('./certificateController.js');
+
+    // Use existing certificate generation logic
+    req.user = { id: enrollment.student._id, role: 'admin' }; // Temporarily set user for auth
+    req.body = { enrollmentId };
+
+    return generateCourseCertificate(req, res);
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// ==========================
+// Admin: Download Certificate
+// ==========================
+export const downloadCertificate = async (req, res) => {
+  try {
+    const { enrollmentId } = req.params;
+
+    console.log('[ADMIN CERT DOWNLOAD HIT]', {
+      enrollmentId,
+      adminId: req.user.id,
+    });
+
+    // Find certificate by enrollmentId (admin can access any certificate)
+    const cert = await Certificate.findOne({
+      enrollmentId: enrollmentId,
+    });
+
+    if (!cert) {
+      return res.status(404).json({
+        success: false,
+        message: 'Certificate not found',
+      });
+    }
+
+    if (!cert.pdfUrl) {
+      return res.status(404).json({
+        success: false,
+        message: 'PDF not generated yet',
+      });
+    }
+
+    const filename = path.basename(cert.pdfUrl);
+
+    // Resolve file path relative to repo-root to match certificateUtils output
+    const repoRoot = path.resolve(process.cwd(), '..');
+    const filePath = path.join(repoRoot, 'certificates', filename);
+
+    console.log('[ADMIN CERT FILE PATH]', { filePath, repoRoot, filename });
+
+    if (!fs.existsSync(filePath)) {
+      console.log('[ADMIN CERT FILE MISSING ON DISK]');
+      return res.status(404).json({
+        success: false,
+        message: 'PDF file missing on server',
+      });
+    }
+
+    return res.download(filePath, filename);
+
+  } catch (err) {
+    console.error('[ADMIN CERT DOWNLOAD ERROR]', err);
+    return res.status(500).json({
+      success: false,
+      message: err.message,
+    });
   }
 };
 

@@ -139,6 +139,69 @@ export const adminAPI = {
   publishCourse: (courseId, status) => axiosInstance.put(`/admin/courses/${courseId}/${status === 'published' ? 'publish' : 'unpublish'}`, { status }),
 
   getAnalytics: () => axiosInstance.get('/admin/analytics'),
+  getEnhancedAnalytics: (params) => axiosInstance.get('/admin/analytics/enhanced', { params }),
   getSubmissions: (params) => axiosInstance.get('/admin/submissions', { params }),
+
+  // Certificate Management
+  getAllCertificates: (params) => axiosInstance.get('/admin/certificates', { params }),
+  getCertificateById: (id) => axiosInstance.get(`/admin/certificates/${id}`),
+  regenerateCertificate: (id) => axiosInstance.post(`/admin/certificates/${id}/regenerate`),
+  reissueCertificate: (data) => axiosInstance.post('/admin/certificates/reissue', data),
+  deleteCertificate: (id) => axiosInstance.delete(`/admin/certificates/${id}`),
+  issueCertificate: (data) => axiosInstance.post('/admin/certificates/issue', data),
+  downloadCertificate: (enrollmentId) => axiosInstance.get(`/admin/certificates/download/${enrollmentId}`, { responseType: 'blob' }),
+
+  // Quiz Control Center
+  getAllQuizzes: (params) => axiosInstance.get('/admin/quizzes', { params }),
+  getQuizAttempts: (quizId) => axiosInstance.get(`/admin/quizzes/${quizId}/attempts`),
+  resetQuizAttempt: (quizId, attemptId) => axiosInstance.delete(`/admin/quizzes/${quizId}/attempts/${attemptId}`),
+
+  // Assignment Control Center
+  getAllAssignments: (params) => axiosInstance.get('/admin/assignments', { params }),
+  overrideAssignmentGrade: (assignmentId, submissionId, data) => axiosInstance.put(`/admin/assignments/${assignmentId}/submissions/${submissionId}/override`, data),
+
+  // Enrollment Management
+  getAllEnrollments: (params) => axiosInstance.get('/admin/enrollments', { params }),
+  manualEnrollStudent: (data) => axiosInstance.post('/admin/enrollments/manual', data),
+  removeEnrollment: (enrollmentId) => axiosInstance.delete(`/admin/enrollments/${enrollmentId}`),
+  resetStudentProgress: (enrollmentId) => axiosInstance.put(`/admin/enrollments/${enrollmentId}/reset`),
+
+  // Course Analytics
+  getCourseAnalytics: (courseId) => axiosInstance.get(`/admin/courses/${courseId}/analytics`),
+
+  // Student Details
+  getStudentDetails: (studentId) => axiosInstance.get(`/admin/students/${studentId}/details`),
+  getStudentProgress: (studentId, params) => axiosInstance.get(`/admin/students/${studentId}/progress`, { params }),
+
+  // Instructor Details
+  getInstructorDetails: (instructorId) => axiosInstance.get(`/admin/instructors/${instructorId}/details`),
+
+  // Course Ownership Transfer
+  transferCourseOwnership: (courseId, data) => axiosInstance.put(`/admin/courses/${courseId}/transfer-ownership`, data),
+
+  // Course Deep Management
+  getCourseDetails: (courseId) => axiosInstance.get(`/admin/courses/${courseId}/details`),
+
+  // Course Content Management (Instructor capabilities for Admin)
+  getCourseLessons: (courseId) => axiosInstance.get(`/admin/courses/${courseId}/lessons`),
+  addCourseLesson: (courseId, data) => axiosInstance.post(`/admin/courses/${courseId}/lessons`, data),
+  updateCourseLesson: (courseId, lessonId, data) => axiosInstance.put(`/admin/courses/${courseId}/lessons/${lessonId}`, data),
+  deleteCourseLesson: (courseId, lessonId) => axiosInstance.delete(`/admin/courses/${courseId}/lessons/${lessonId}`),
+  reorderCourseLessons: (courseId, orderedLessonIds) => axiosInstance.put(`/admin/courses/${courseId}/lessons/reorder`, { orderedLessonIds }),
+
+  getCourseQuizzes: (courseId) => axiosInstance.get(`/admin/courses/${courseId}/quizzes`),
+  createCourseQuiz: (courseId, data) => axiosInstance.post(`/admin/courses/${courseId}/quizzes`, data),
+  getQuizById: (quizId) => axiosInstance.get(`/admin/quizzes/${quizId}`),
+  updateQuiz: (quizId, data) => axiosInstance.put(`/admin/quizzes/${quizId}`, data),
+  deleteQuiz: (quizId) => axiosInstance.delete(`/admin/quizzes/${quizId}`),
+
+  getCourseAssignments: (courseId) => axiosInstance.get(`/admin/courses/${courseId}/assignments`),
+  createCourseAssignment: (courseId, data) => axiosInstance.post(`/admin/courses/${courseId}/assignments`, data),
+  getAssignmentById: (assignmentId) => axiosInstance.get(`/admin/assignments/${assignmentId}`),
+  updateAssignment: (assignmentId, data) => axiosInstance.put(`/admin/assignments/${assignmentId}`, data),
+  deleteAssignment: (assignmentId) => axiosInstance.delete(`/admin/assignments/${assignmentId}`),
+  getCourseSubmissions: (courseId) => axiosInstance.get(`/admin/courses/${courseId}/submissions`),
+  getAssignmentSubmissions: (assignmentId) => axiosInstance.get(`/admin/assignments/${assignmentId}/submissions`),
+  gradeSubmission: (assignmentId, data) => axiosInstance.put(`/admin/assignments/${assignmentId}/grade`, data),
 };
 

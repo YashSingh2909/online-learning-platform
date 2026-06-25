@@ -77,9 +77,9 @@ export default function InstructorQuizzesManager() {
 
     // Keep question structure compatible with QuizDetail.jsx
     const questions = (quiz.questions || []).map((q) => ({
-      question: q.question || '',
+      question: q.questionText || q.question || '',
       options: (q.options && q.options.length ? q.options : ['', '', '', '']).slice(0, 4),
-      correctAnswer: typeof q.correctAnswer === 'number' ? q.correctAnswer : 0,
+      correctAnswer: typeof q.correctAnswer === 'number' ? q.correctAnswer : parseInt(q.correctAnswer) || 0,
     }));
 
     setForm({
@@ -166,9 +166,10 @@ export default function InstructorQuizzesManager() {
         title: form.title,
         courseId,
         questions: questions.map((q) => ({
+          questionText: q.question,
           question: q.question,
           options: (q.options || []).slice(0, 4),
-          correctAnswer: Number(q.correctAnswer) || 0,
+          correctAnswer: String(q.correctAnswer || 0),
         })),
         totalPoints: form.totalPoints || recomputeTotalPoints(questions),
         passingScore: form.passingScore ?? 60,

@@ -7,7 +7,8 @@ export const getQuizzesByCourse = async (req, res) => {
   try {
     // Note: existing UI currently fetches quizzes for enrolled courses.
     // We will not add enrollment-based filtering here yet; publish/free-preview are persisted.
-    const { courseId } = req.params;
+    const courseId = req.params.id || req.params.courseId;
+    console.log('getQuizzesByCourse called with courseId:', courseId);
     const isInstructorOrAdmin = req.user?.role === 'admin' || req.user?.role === 'instructor';
 
     const course = await Course.findById(courseId);
@@ -27,7 +28,8 @@ export const getQuizzesByCourse = async (req, res) => {
           $or: [{ isFreePreview: true }, { isPublished: true }],
         };
 
-    const quizzes = await Quiz.find(filter).select('-questions');
+    // Include questions for admins/instructors (course owners), exclude for students
+    const quizzes = await Quiz.find(filter).select(isOwner ? '' : '-questions');
 
 
 

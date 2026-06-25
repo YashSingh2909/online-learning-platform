@@ -171,7 +171,11 @@ export const deleteCourse = async (req, res) => {
 
 export const getLessons = async (req, res) => {
   try {
-    const course = await Course.findById(req.params.id);
+    const courseId = req.params.id || req.params.courseId;
+    console.log('getLessons called with courseId:', courseId);
+    console.log('Request params:', req.params);
+    
+    const course = await Course.findById(courseId);
     if (!course) return res.status(404).json({ success: false, message: 'Course not found' });
 
     const isOwner = canOwnCourse(course, req.user);

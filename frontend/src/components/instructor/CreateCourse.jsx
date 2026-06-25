@@ -125,7 +125,7 @@ export default function CreateCourse() {
             </div>
 
             <div className="form-field">
-              <label className="form-label">Price</label>
+              <label className="form-label">Price (₹)</label>
               <input
                 type="number"
                 min={0}
