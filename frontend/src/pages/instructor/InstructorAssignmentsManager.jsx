@@ -112,6 +112,7 @@ export default function InstructorAssignmentsManager() {
         courseId,
         dueDate: form.dueDate ? new Date(form.dueDate) : undefined,
         totalPoints: Number(form.totalPoints) || 100,
+        maxScore: Number(form.totalPoints) || 100, // Keep maxScore in sync with totalPoints
         resourceUrls,
         isFreePreview: !!form.isFreePreview,
         isPublished: !!form.isPublished,

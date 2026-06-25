@@ -73,6 +73,7 @@ export default function InstructorAssignmentGrading() {
   // grading state per submission
   const [grading, setGrading] = useState({}); // { [submissionId]: { score, feedback } }
   const [submittingGrade, setSubmittingGrade] = useState(false);
+  const [assignmentsMap, setAssignmentsMap] = useState({}); // { [assignmentId]: { maxScore, totalPoints } }
 
   const refresh = async () => {
     if (!user) return;
@@ -82,6 +83,17 @@ export default function InstructorAssignmentGrading() {
       // instructor grading: fetch all student submissions for the course
       const res = await assignmentAPI.getInstructorCourseSubmissions(courseId);
       setSubmissions(res.data.data || []);
+
+      // Also fetch assignments directly to get current maxScore/totalPoints
+      const assignmentsRes = await assignmentAPI.getAssignmentsByCourse(courseId);
+      const map = {};
+      (assignmentsRes.data.data || []).forEach(assignment => {
+        map[assignment._id] = {
+          maxScore: assignment.maxScore,
+          totalPoints: assignment.totalPoints
+        };
+      });
+      setAssignmentsMap(map);
     } catch (e) {
       setError(e?.message || 'Failed to load submissions');
     } finally {
@@ -113,9 +125,25 @@ export default function InstructorAssignmentGrading() {
     return grading[submissionId] || { score: '', feedback: '' };
   };
 
-  const handleGrade = async (assignmentId, submissionId) => {
+  const handleGrade = async (assignmentId, submissionId, maxPoints) => {
     const gs = getGradeState(submissionId);
     const scoreNum = gs.score === '' || gs.score === null ? undefined : Number(gs.score);
+
+    // Frontend validation
+    if (!maxPoints) {
+      setError('Assignment max points not set. Please edit the assignment to set total points.');
+      return;
+    }
+
+    if (scoreNum !== undefined && scoreNum !== null && scoreNum > maxPoints) {
+      setError(`Score cannot exceed ${maxPoints} points`);
+      return;
+    }
+
+    if (scoreNum !== undefined && scoreNum !== null && scoreNum < 0) {
+      setError('Score cannot be negative');
+      return;
+    }
 
     setSubmittingGrade(true);
     setError('');
@@ -202,6 +230,9 @@ export default function InstructorAssignmentGrading() {
                   <div>
                     <h2 className="dashboard-section-title">{grp.title}</h2>
                     <p className="dashboard-section-desc">Assignment ID: {grp.assignmentId}</p>
+                    <p className="text-xs text-slate-400 mt-1">
+                      Max Points: {assignmentsMap[grp.assignmentId]?.maxScore ?? assignmentsMap[grp.assignmentId]?.totalPoints ?? 'Not set'}
+                    </p>
                   </div>
                   <button
                     className="btn-outline-alt"
@@ -218,6 +249,15 @@ export default function InstructorAssignmentGrading() {
                     const submissionId = item._id || item.submissionId || item.submission?._id;
                     const status = item.status;
                     const fileUrl = item.fileUrl || item.submission?.fileUrl || item.resourceUrl || item.url;
+                    const maxPoints = assignmentsMap[grp.assignmentId]?.maxScore ?? assignmentsMap[grp.assignmentId]?.totalPoints;
+
+                    if (!maxPoints) {
+                      return (
+                        <div key={submissionId || item.submittedAt} className="rounded-2xl bg-red-500/10 border border-red-400/30 p-5">
+                          <p className="text-red-200">Error: Assignment max points not set. Please edit the assignment to set total points.</p>
+                        </div>
+                      );
+                    }
 
                     return (
                       <div key={submissionId || item.submittedAt} className="rounded-2xl bg-white/5 ring-1 ring-white/10 p-5">
@@ -232,10 +272,10 @@ export default function InstructorAssignmentGrading() {
                             </p>
                             {status === 'graded' ? (
                               <>
-                                <p className="text-sm text-emerald-200 mt-1">Score: {item.score ?? 0}</p>
-                                {item.feedback ? <p className="text-sm text-slate-300 mt-2">{item.feedback}</p> : null}
+                                <p className="text-sm text-emerald-200 mt-1">Current Score: {item.score ?? 0}</p>
+                                {item.feedback ? <p className="text-sm text-slate-300 mt-2">Current Feedback: {item.feedback}</p> : null}
                                 {item.gradedAt ? (
-                                  <p className="text-xs text-slate-400 mt-2">Graded on: {new Date(item.gradedAt).toLocaleString()}</p>
+                                  <p className="text-xs text-slate-400 mt-2">Last graded: {new Date(item.gradedAt).toLocaleString()}</p>
                                 ) : null}
                               </>
                             ) : null}
@@ -246,32 +286,35 @@ export default function InstructorAssignmentGrading() {
                           <FilePreview url={fileUrl} title={grp.title} />
                         </div>
 
-                        {status !== 'graded' ? (
-                          <div className="mt-4 rounded-xl border border-white/10 bg-slate-950/20 p-4">
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                              <div>
-                                <label className="text-xs text-slate-400">Score / Marks</label>
-                                <input
-                                  type="number"
-                                  value={getGradeState(submissionId).score}
-                                  onChange={(e) => {
-                                    const val = e.target.value;
-                                    setGrading((prev) => ({
-                                      ...prev,
-                                      [submissionId]: {
-                                        ...(prev[submissionId] || { score: '', feedback: '' }),
-                                        score: val,
-                                      },
-                                    }));
-                                  }}
-                                  className="form-input"
-                                  placeholder="e.g. 90"
-                                />
-                              </div>
+                        <div className="mt-4 rounded-xl border border-white/10 bg-slate-950/20 p-4">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                              <label className="text-xs text-slate-400">
+                                Score / Marks (Max: {maxPoints})
+                              </label>
+                              <input
+                                type="number"
+                                value={getGradeState(submissionId).score !== '' ? getGradeState(submissionId).score : (item.score ?? '')}
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  setGrading((prev) => ({
+                                    ...prev,
+                                    [submissionId]: {
+                                      ...(prev[submissionId] || { score: '', feedback: '' }),
+                                      score: val,
+                                    },
+                                  }));
+                                }}
+                                className="form-input"
+                                placeholder={`e.g. 15 (max ${maxPoints})`}
+                                max={maxPoints}
+                                min="0"
+                              />
+                            </div>
                               <div>
                                 <label className="text-xs text-slate-400">Feedback</label>
                                 <textarea
-                                  value={getGradeState(submissionId).feedback}
+                                  value={getGradeState(submissionId).feedback !== '' ? getGradeState(submissionId).feedback : (item.feedback ?? '')}
                                   onChange={(e) => {
                                     const val = e.target.value;
                                     setGrading((prev) => ({
@@ -294,13 +337,12 @@ export default function InstructorAssignmentGrading() {
                                 className="primary-btn w-full"
                                 type="button"
                                 disabled={submittingGrade}
-                                onClick={() => handleGrade(grp.assignmentId, submissionId)}
+                                onClick={() => handleGrade(grp.assignmentId, submissionId, maxPoints)}
                               >
-                                {submittingGrade ? 'Grading…' : 'Grade submission'}
+                                {submittingGrade ? 'Saving…' : (status === 'graded' ? 'Update grade' : 'Grade submission')}
                               </button>
                             </div>
                           </div>
-                        ) : null}
                       </div>
                     );
                   })}

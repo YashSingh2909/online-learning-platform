@@ -2,6 +2,7 @@ import Payment from '../models/Payment.js';
 import Enrollment from '../models/Enrollment.js';
 import Course from '../models/Course.js';
 import User from '../models/User.js';
+import Notification from '../models/Notification.js';
 import crypto from 'crypto';
 
 // Create payment order
@@ -83,6 +84,21 @@ export const verifyPayment = async (req, res) => {
     await Course.findByIdAndUpdate(payment.course, {
       $inc: { students: 1 },
     });
+
+    // Create notification for successful enrollment
+    const course = await Course.findById(payment.course);
+    const notification = await Notification.create({
+      recipient: payment.student,
+      title: 'Course Enrollment Successful',
+      message: `You have successfully enrolled in ${course.title}`,
+      type: 'enrollment',
+      relatedCourse: payment.course,
+    });
+
+    const io = req.app.get('io');
+    if (io) {
+      io.to(`user_${payment.student.toString()}`).emit('new_notification', notification);
+    }
 
     res.status(200).json({
       success: true,

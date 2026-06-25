@@ -132,8 +132,14 @@ export const updateAssignment = async (req, res) => {
     if (description !== undefined) assignment.description = description;
     if (dueDate !== undefined) assignment.dueDate = dueDate;
     if (deadline !== undefined) assignment.deadline = deadline;
-    if (totalPoints !== undefined) assignment.totalPoints = totalPoints;
-    if (maxScore !== undefined) assignment.maxScore = maxScore;
+    if (totalPoints !== undefined) {
+      assignment.totalPoints = totalPoints;
+      assignment.maxScore = maxScore || totalPoints; // Keep maxScore in sync
+    }
+    if (maxScore !== undefined) {
+      assignment.maxScore = maxScore;
+      assignment.totalPoints = totalPoints || maxScore; // Keep totalPoints in sync
+    }
     if (isFreePreview !== undefined) assignment.isFreePreview = !!isFreePreview;
     if (isPublished !== undefined) assignment.isPublished = !!isPublished;
 
@@ -288,6 +294,27 @@ export const gradeSubmission = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Submission not found' });
     }
 
+    // Get max points for validation and notification
+    const maxPoints = assignment.maxScore || assignment.totalPoints || 100;
+
+    // Check if this is a new grade or an update
+    const wasAlreadyGraded = submission.status === 'graded';
+
+    // Validate score against assignment's max points
+    if (score !== undefined && score !== null && score > maxPoints) {
+      return res.status(400).json({ 
+        success: false, 
+        message: `Score cannot exceed ${maxPoints} points` 
+      });
+    }
+
+    if (score !== undefined && score !== null && score < 0) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Score cannot be negative' 
+      });
+    }
+
     submission.score = score;
     submission.feedback = feedback;
     submission.status = 'graded';
@@ -312,8 +339,10 @@ export const gradeSubmission = async (req, res) => {
     // Create notification for student
     const notification = await Notification.create({
       recipient: submission.student,
-      title: 'Assignment Graded',
-      message: `Your assignment "${assignment.title}" has been graded. Score: ${score}/${assignment.totalPoints}`,
+      title: wasAlreadyGraded ? 'Assignment Grade Updated' : 'Assignment Graded',
+      message: wasAlreadyGraded
+        ? `Your assignment "${assignment.title}" grade has been updated. Score: ${score}/${maxPoints}`
+        : `Your assignment "${assignment.title}" has been graded. Score: ${score}/${maxPoints}`,
       type: 'grade',
       relatedAssignment: assignment._id,
     });
@@ -384,6 +413,8 @@ export const getAllCourseSubmissions = async (req, res) => {
         submissions.push({
           assignmentId: assignment._id,
           title: assignment.title,
+          maxScore: assignment.maxScore || assignment.totalPoints || 100,
+          totalPoints: assignment.totalPoints || assignment.maxScore || 100,
           ...s.toObject(),
           student: s.student, // make sure client can access item.student?.name if populated elsewhere
           fileUrl: s.fileUrl,

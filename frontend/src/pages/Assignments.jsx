@@ -265,6 +265,51 @@ export default function Assignments() {
                               </div>
                             </div>
 
+                            {assignment.resourceUrls && assignment.resourceUrls.length > 0 && (
+                              <div style={{ marginTop: '1rem' }}>
+                                <div className="flex items-center gap-2 mb-2">
+                                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: 'var(--accent-color)' }}>
+                                    <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+                                    <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/>
+                                  </svg>
+                                  <p className="text-sm font-semibold" style={{ color: 'var(--text-secondary)' }}>Assignment Resources</p>
+                                </div>
+                                <div style={{ 
+                                  background: 'rgba(255,255,255,0.05)', 
+                                  border: '1px solid rgba(255,255,255,0.1)', 
+                                  borderRadius: '0.75rem', 
+                                  padding: '0.75rem' 
+                                }}>
+                                  {assignment.resourceUrls.map((url, index) => (
+                                    <a
+                                      key={index}
+                                      href={url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-sm"
+                                      style={{ 
+                                        color: 'var(--accent-color)',
+                                        textDecoration: 'underline',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.5rem',
+                                        padding: '0.5rem 0',
+                                        transition: 'color 0.2s'
+                                      }}
+                                      onMouseEnter={(e) => e.target.style.color = 'var(--accent-hover)'}
+                                      onMouseLeave={(e) => e.target.style.color = 'var(--accent-color)'}
+                                    >
+                                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+                                        <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/>
+                                      </svg>
+                                      {url.split('/').pop() || `Resource ${index + 1}`}
+                                    </a>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
                             {status === 'submitted' && (
                               <div style={{ 
                                 marginTop: '1rem',
@@ -281,6 +326,29 @@ export default function Assignments() {
                                   <p className="text-sm font-semibold text-cyan-200">Submitted</p>
                                 </div>
                                 <p className="text-xs" style={{ color: 'var(--text-muted)', marginTop: '0.25rem' }}>Awaiting instructor grading.</p>
+                                {sub?.fileUrl && (
+                                  <div style={{ marginTop: '0.75rem' }}>
+                                    <a
+                                      href={sub.fileUrl}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-sm"
+                                      style={{ 
+                                        color: 'var(--accent-color)',
+                                        textDecoration: 'underline',
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: '0.5rem'
+                                      }}
+                                    >
+                                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+                                        <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/>
+                                      </svg>
+                                      View Submitted File
+                                    </a>
+                                  </div>
+                                )}
                               </div>
                             )}
 
@@ -307,6 +375,29 @@ export default function Assignments() {
                                     Graded on: {new Date(sub.gradedAt).toLocaleString()}
                                   </p>
                                 ) : null}
+                                {sub?.fileUrl && (
+                                  <div style={{ marginTop: '0.75rem' }}>
+                                    <a
+                                      href={sub.fileUrl}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-sm"
+                                      style={{ 
+                                        color: 'var(--accent-color)',
+                                        textDecoration: 'underline',
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: '0.5rem'
+                                      }}
+                                    >
+                                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+                                        <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/>
+                                      </svg>
+                                      View Submitted File
+                                    </a>
+                                  </div>
+                                )}
                               </div>
                             )}
 
