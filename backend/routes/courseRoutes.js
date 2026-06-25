@@ -15,6 +15,7 @@ import {
   toggleFeatured,
   getFeaturedCourses,
   getInstructorCourses,
+  resetCourseThumbnail,
 } from '../controllers/courseController.js';
 import { getQuizzesByCourse, createQuiz } from '../controllers/quizController.js';
 import { getAssignmentsByCourse, createAssignment } from '../controllers/assignmentController.js';
@@ -51,6 +52,7 @@ router.post('/:id/assignments', protect, authorize('instructor', 'admin'), verif
 router.put('/:id/publish', protect, authorize('instructor', 'admin'), verifyCourseOwner, publishCourse);
 router.put('/:id/unpublish', protect, authorize('instructor', 'admin'), verifyCourseOwner, unpublishCourse);
 router.put('/:id/featured', protect, authorize('admin'), toggleFeatured);
+router.put('/:id/reset-thumbnail', protect, authorize('instructor', 'admin'), verifyCourseOwner, resetCourseThumbnail);
 
 router.get('/:id', optionalAuth, getCourseById);
 router.put('/:id', protect, authorize('instructor', 'admin'), verifyCourseOwner, updateCourse);

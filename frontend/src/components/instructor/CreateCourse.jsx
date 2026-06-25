@@ -10,7 +10,7 @@ const initialForm = {
   status: 'published',
   price: 0,
   duration: '0 hours',
-  thumbnail: 'https://placehold.co/600x360?text=Course+Thumbnail',
+  thumbnail: '', // Empty string - backend will auto-generate
 };
 
 export default function CreateCourse() {
@@ -144,6 +144,9 @@ export default function CreateCourse() {
             <div className="form-field">
               <label className="form-label">Course Thumbnail</label>
               <input className="form-input" type="file" accept="image/*" onChange={(e) => setThumbnailFile(e.target.files?.[0] || null)} />
+              <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
+                Leave empty to auto-generate based on category and level
+              </p>
             </div>
           </div>
 

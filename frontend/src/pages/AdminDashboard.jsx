@@ -1324,6 +1324,32 @@ function CourseForm({ course, onClose, onSave }) {
                 Current: {formData.thumbnail}
               </p>
             )}
+            {course && (
+              <button
+                type="button"
+                onClick={async () => {
+                  try {
+                    await courseAPI.resetCourseThumbnail(course._id);
+                    alert('Thumbnail reset to auto-generated');
+                    onClose();
+                  } catch (error) {
+                    alert('Failed to reset thumbnail');
+                  }
+                }}
+                style={{
+                  marginTop: '0.5rem',
+                  padding: '0.5rem 1rem',
+                  borderRadius: '6px',
+                  border: '1px solid #06b6d4',
+                  background: 'transparent',
+                  color: '#06b6d4',
+                  cursor: 'pointer',
+                  fontSize: '0.875rem'
+                }}
+              >
+                Reset to Auto-Generated
+              </button>
+            )}
           </div>
           {error && <p style={{ color: '#dc2626', marginBottom: '1rem' }}>{error}</p>}
           <div style={{ display: 'flex', gap: '1rem' }}>

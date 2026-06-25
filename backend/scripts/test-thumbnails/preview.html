@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Thumbnail Gallery Preview</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            background: #f5f5f5; 
+            margin: 0;
+            padding: 20px;
+        }
+        h1 { text-align: center; color: #333; }
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .thumbnail-card {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .thumbnail-card img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        .thumbnail-info {
+            padding: 10px;
+            text-align: center;
+            background: #f9f9f9;
+            border-top: 1px solid #eee;
+        }
+        .thumbnail-info h3 {
+            margin: 0 0 5px 0;
+            font-size: 14px;
+            color: #333;
+        }
+        .thumbnail-info p {
+            margin: 0;
+            font-size: 12px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <h1>Course Thumbnail Gallery</h1>
+    <div class="gallery" id="gallery"></div>
+    
+    <script>
+        const combinations = [
+            { category: 'Programming', level: 'Beginner', file: 'programming-beginner.txt' },
+            { category: 'Programming', level: 'Intermediate', file: 'programming-intermediate.txt' },
+            { category: 'Programming', level: 'Advanced', file: 'programming-advanced.txt' },
+            { category: 'Design', level: 'Beginner', file: 'design-beginner.txt' },
+            { category: 'Design', level: 'Intermediate', file: 'design-intermediate.txt' },
+            { category: 'Design', level: 'Advanced', file: 'design-advanced.txt' },
+            { category: 'Business', level: 'Beginner', file: 'business-beginner.txt' },
+            { category: 'Business', level: 'Intermediate', file: 'business-intermediate.txt' },
+            { category: 'Business', level: 'Advanced', file: 'business-advanced.txt' },
+        ];
+
+        const gallery = document.getElementById('gallery');
+
+        combinations.forEach(combo => {
+            fetch(combo.file)
+                .then(response => response.text())
+                .then(dataUrl => {
+                    const card = document.createElement('div');
+                    card.className = 'thumbnail-card';
+                    card.innerHTML = `
+                        <img src="${dataUrl.trim()}" alt="${combo.category} - ${combo.level}" />
+                        <div class="thumbnail-info">
+                            <h3>${combo.category}</h3>
+                            <p>${combo.level}</p>
+                        </div>
+                    `;
+                    gallery.appendChild(card);
+                })
+                .catch(err => console.error(`Error loading ${combo.file}:`, err));
+        });
+    </script>
+</body>
+</html>

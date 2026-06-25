@@ -58,6 +58,19 @@ export default function MyCourses() {
     }
   };
 
+  const resetThumbnail = async (courseId) => {
+    if (!window.confirm('Reset thumbnail to auto-generated? This will remove any custom thumbnail.')) return;
+    setMessage('');
+    setError('');
+    try {
+      await courseAPI.resetCourseThumbnail(courseId);
+      setMessage('Thumbnail reset to auto-generated.');
+      await loadCourses();
+    } catch (err) {
+      setError(getErrorMessage(err, 'Could not reset thumbnail.'));
+    }
+  };
+
   return (
     <>
       <div className="dashboard-header">
@@ -107,6 +120,9 @@ export default function MyCourses() {
                   </button>
                   <button className="btn-outline-alt" type="button" onClick={() => togglePublish(course)}>
                     {course.isPublished ? 'Unpublish' : 'Publish'}
+                  </button>
+                  <button className="btn-outline-alt" type="button" onClick={() => resetThumbnail(course._id)}>
+                    Reset Thumbnail
                   </button>
                   <button className="btn-outline-alt" type="button" onClick={() => deleteCourse(course._id)}>
                     Delete

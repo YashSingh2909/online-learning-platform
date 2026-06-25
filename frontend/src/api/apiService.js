@@ -23,6 +23,7 @@ export const courseAPI = {
   publishCourse: (id) => axiosInstance.put(`/courses/${id}/publish`, {}),
   unpublishCourse: (id) => axiosInstance.put(`/courses/${id}/unpublish`, {}),
   toggleFeatured: (id) => axiosInstance.put(`/courses/${id}/featured`, {}),
+  resetCourseThumbnail: (id) => axiosInstance.put(`/courses/${id}/reset-thumbnail`, {}),
 };
 
 export const uploadAPI = {

@@ -31,7 +31,7 @@ const courseSchema = new mongoose.Schema({
   },
   thumbnail: {
     type: String,
-    default: 'https://via.placeholder.com/300x200',
+    default: '', // Empty string will trigger auto-generation
   },
   duration: {
     type: String,
