@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Link, Navigate, Route, Routes, useParams } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { SocketProvider, useSocket } from './context/SocketContext';
 import { ProtectedRoute, PublicRoute } from './components/common/ProtectedRoute';
 
 import Layout from './components/Layout';
@@ -126,11 +127,47 @@ const NotFound = () => (
   </Page>
 );
 
+const GlobalNotificationListener = () => {
+  const socket = useSocket();
+  const [toast, setToast] = React.useState(null);
+
+  React.useEffect(() => {
+    if (!socket) return;
+
+    const handleNotification = (notification) => {
+      setToast(notification);
+      setTimeout(() => setToast(null), 5000);
+    };
+
+    socket.on('new_notification', handleNotification);
+
+    return () => {
+      socket.off('new_notification', handleNotification);
+    };
+  }, [socket]);
+
+  if (!toast) return null;
+
+  return (
+    <div style={{
+      position: 'fixed', bottom: '20px', right: '20px', 
+      background: '#333', color: '#fff', padding: '15px', 
+      borderRadius: '8px', zIndex: 9999, boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+      maxWidth: '300px'
+    }}>
+      <h4 style={{ margin: '0 0 5px 0', fontSize: '16px' }}>{toast.title}</h4>
+      <p style={{ margin: 0, fontSize: '14px', opacity: 0.9 }}>{toast.message}</p>
+    </div>
+  );
+};
+
 function App() {
   return (
     <Router>
       <AuthProvider>
-        <Routes>
+        <SocketProvider>
+          <GlobalNotificationListener />
+          <Routes>
           <Route path="/" element={<Page><Home /></Page>} />
           <Route path="/about" element={<Page><About /></Page>} />
           <Route path="/help" element={<Page><Help /></Page>} />
@@ -183,6 +220,7 @@ function App() {
 
           <Route path="*" element={<NotFound />} />
         </Routes>
+        </SocketProvider>
       </AuthProvider>
     </Router>
   );

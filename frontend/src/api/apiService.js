@@ -206,3 +206,23 @@ export const adminAPI = {
   gradeSubmission: (assignmentId, data) => axiosInstance.put(`/admin/assignments/${assignmentId}/grade`, data),
 };
 
+export const liveClassAPI = {
+  getLiveClasses: (courseId) => axiosInstance.get(`/courses/${courseId}/live-classes`),
+  createLiveClass: (courseId, data) => axiosInstance.post(`/courses/${courseId}/live-classes`, data),
+  updateLiveClassStatus: (courseId, classId, data) => axiosInstance.put(`/courses/${courseId}/live-classes/${classId}/status`, data),
+};
+
+export const chatAPI = {
+  getCourseMessages: (courseId) => axiosInstance.get(`/courses/${courseId}/chat`),
+};
+
+export const discussionAPI = {
+  getDiscussions: (courseId) => axiosInstance.get(`/courses/${courseId}/discussions`),
+  createDiscussion: (courseId, data) => axiosInstance.post(`/courses/${courseId}/discussions`, data),
+  getDiscussionReplies: (courseId, discussionId) => axiosInstance.get(`/courses/${courseId}/discussions/${discussionId}/replies`),
+  addReply: (courseId, discussionId, data) => axiosInstance.post(`/courses/${courseId}/discussions/${discussionId}/replies`, data),
+};
+
+export const ragAPI = {
+  chat: (courseId, message) => axiosInstance.post(`/rag/chat`, { courseId, message }),
+};

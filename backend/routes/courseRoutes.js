@@ -21,6 +21,9 @@ import { getQuizzesByCourse, createQuiz } from '../controllers/quizController.js
 import { getAssignmentsByCourse, createAssignment } from '../controllers/assignmentController.js';
 import { protect, authorize, optionalAuth } from '../middleware/auth.js';
 import { verifyCourseOwner } from '../middleware/checkCourseOwner.js';
+import liveClassRoutes from './liveClassRoutes.js';
+import chatRoutes from './chatRoutes.js';
+import discussionRoutes from './discussionRoutes.js';
 
 const router = express.Router();
 
@@ -48,6 +51,10 @@ router.post('/:id/quizzes', protect, authorize('instructor', 'admin'), verifyCou
 
 router.get('/:id/assignments', protect, attachCourseId, getAssignmentsByCourse);
 router.post('/:id/assignments', protect, authorize('instructor', 'admin'), verifyCourseOwner, attachCourseId, createAssignment);
+
+router.use('/:id/live-classes', attachCourseId, liveClassRoutes);
+router.use('/:id/chat', attachCourseId, chatRoutes);
+router.use('/:id/discussions', attachCourseId, discussionRoutes);
 
 router.put('/:id/publish', protect, authorize('instructor', 'admin'), verifyCourseOwner, publishCourse);
 router.put('/:id/unpublish', protect, authorize('instructor', 'admin'), verifyCourseOwner, unpublishCourse);
