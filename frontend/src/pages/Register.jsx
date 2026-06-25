@@ -6,7 +6,7 @@ export default function Register() {
   const [formData, setFormData] = useState({ user_name: '', user_email: '', user_password: '', role: 'student' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
+  const [passwordStrength, setPasswordStrength] = useState({ score: 0, feedback: '' });
   const { register } = useAuth();
   const navigate = useNavigate();
 
@@ -16,6 +16,60 @@ export default function Register() {
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    
+    // Calculate password strength when password changes
+    if (e.target.name === 'user_password') {
+      calculatePasswordStrength(e.target.value);
+    }
+  };
+
+  const calculatePasswordStrength = (password) => {
+    let score = 0;
+    let feedback = '';
+
+    if (!password) {
+      setPasswordStrength({ score: 0, feedback: '' });
+      return;
+    }
+
+    // Length check
+    if (password.length >= 8) score += 1;
+    if (password.length >= 12) score += 1;
+
+    // Complexity checks
+    if (/[a-z]/.test(password)) score += 1; // lowercase
+    if (/[A-Z]/.test(password)) score += 1; // uppercase
+    if (/[0-9]/.test(password)) score += 1; // numbers
+    if (/[^a-zA-Z0-9]/.test(password)) score += 1; // special characters
+
+    // Cap the score at 5
+    score = Math.min(score, 5);
+
+    // Provide feedback based on score
+    switch (score) {
+      case 0:
+        feedback = 'Very weak';
+        break;
+      case 1:
+        feedback = 'Weak';
+        break;
+      case 2:
+        feedback = 'Fair';
+        break;
+      case 3:
+        feedback = 'Good';
+        break;
+      case 4:
+        feedback = 'Strong';
+        break;
+      case 5:
+        feedback = 'Very strong';
+        break;
+      default:
+        feedback = '';
+    }
+
+    setPasswordStrength({ score, feedback });
   };
 
   const handleSubmit = async (e) => {
@@ -25,7 +79,8 @@ export default function Register() {
 
     try {
       await register(formData.user_name, formData.user_email, formData.user_password, formData.role);
-      setSuccess(true);
+      // Redirect to login page after successful registration
+      navigate('/login', { state: { registrationSuccess: true } });
     } catch (err) {
       const msg = err?.message || err?.data?.message || JSON.stringify(err);
       setError(msg || 'Registration failed');
@@ -48,38 +103,22 @@ export default function Register() {
         </Link>
 
         <div className="auth-card">
-          {success ? (
-            <div className="auth-success">
-              <div className="success-icon">
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/>
-                  <polyline points="22 4 12 14.01 9 11.01"/>
-                </svg>
-              </div>
-              <h1>Account created!</h1>
-              <p>Your account has been created successfully. Please log in to continue.</p>
-              <Link to="/login" className="btn-primary" style={{ marginTop: '1rem' }}>
-                Go to Login
-              </Link>
-            </div>
-          ) : (
-            <>
-              <div className="auth-header">
-                <h1>Create account</h1>
-                <p>Join learners today</p>
-              </div>
+          <div className="auth-header">
+            <h1>Create account</h1>
+            <p>Join learners today</p>
+          </div>
 
-              <form onSubmit={handleSubmit} className="auth-form">
-                {error && (
-                  <div className="error-msg">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <circle cx="12" cy="12" r="10"/>
-                      <line x1="12" y1="8" x2="12" y2="12"/>
-                      <line x1="12" y1="16" x2="12.01" y2="16"/>
-                    </svg>
-                    {error}
-                  </div>
-                )}
+          <form onSubmit={handleSubmit} className="auth-form">
+            {error && (
+              <div className="error-msg">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="12" y1="8" x2="12" y2="12"/>
+                  <line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+                {error}
+              </div>
+            )}
 
             <div className="form-group">
               <label>Full Name</label>
@@ -120,6 +159,46 @@ export default function Register() {
                 required
                 autoComplete="off"
               />
+              {formData.user_password && (
+                <div style={{ marginTop: '0.75rem', padding: '0.75rem', background: 'rgba(255,255,255,0.05)', borderRadius: '0.5rem', border: '1px solid rgba(255,255,255,0.1)' }}>
+                  <div style={{
+                    display: 'flex',
+                    gap: '4px',
+                    marginBottom: '0.5rem'
+                  }}>
+                    {[1, 2, 3, 4, 5].map((level) => (
+                      <div
+                        key={level}
+                        style={{
+                          flex: 1,
+                          height: '8px',
+                          borderRadius: '4px',
+                          backgroundColor: level <= passwordStrength.score 
+                            ? passwordStrength.score <= 2 
+                              ? '#ef4444' 
+                              : passwordStrength.score <= 3 
+                                ? '#f59e0b' 
+                                : '#10b981'
+                            : 'rgba(255, 255, 255, 0.2)',
+                          transition: 'background-color 0.3s ease'
+                        }}
+                      />
+                    ))}
+                  </div>
+                  <p style={{
+                    fontSize: '0.875rem',
+                    fontWeight: '500',
+                    color: passwordStrength.score <= 2 
+                      ? '#ef4444' 
+                      : passwordStrength.score <= 3 
+                        ? '#f59e0b' 
+                        : '#10b981',
+                    margin: '0'
+                  }}>
+                    Password strength: {passwordStrength.feedback}
+                  </p>
+                </div>
+              )}
             </div>
 
             <div className="form-group">
@@ -159,8 +238,6 @@ export default function Register() {
               )}
             </button>
           </form>
-          </>
-          )}
 
           <div className="auth-footer">
             <p>Already have an account? <Link to="/login">Sign in</Link></p>

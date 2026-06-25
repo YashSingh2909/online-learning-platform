@@ -1,17 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 export default function Login() {
   const [formData, setFormData] = useState({ user_email: '', user_password: '' });
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     setFormData({ user_email: '', user_password: '' });
-  }, []);
+    
+    // Check if user was redirected from successful registration
+    if (location?.state?.registrationSuccess) {
+      setSuccessMessage('Registration successful! Please log in with your credentials.');
+    }
+  }, [location]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -53,6 +60,26 @@ export default function Login() {
           </div>
 
           <form onSubmit={handleSubmit} className="auth-form">
+            {successMessage && (
+              <div style={{
+                background: 'rgba(16, 185, 129, 0.1)',
+                border: '1px solid rgba(16, 185, 129, 0.3)',
+                borderRadius: '0.5rem',
+                padding: '0.75rem',
+                marginBottom: '1rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                color: '#10b981'
+              }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/>
+                  <polyline points="22 4 12 14.01 9 11.01"/>
+                </svg>
+                {successMessage}
+              </div>
+            )}
+            
             {error && (
               <div className="error-msg">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -69,7 +96,7 @@ export default function Login() {
               <input
                 type="email"
                 name="user_email"
-                value={formData.email}
+                value={formData.user_email}
                 onChange={handleChange}
                 className="form-input"
                 placeholder="you@example.com"
@@ -83,7 +110,7 @@ export default function Login() {
               <input
                 type="password"
                 name="user_password"
-                value={formData.password}
+                value={formData.user_password}
                 onChange={handleChange}
                 className="form-input"
                 placeholder="Enter password"
