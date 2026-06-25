@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { notificationAPI } from '../api/apiService';
 import { useAuth } from '../context/AuthContext';
+import { useSocket } from '../context/SocketContext';
 
 export default function Notifications() {
   const { user } = useAuth();
+  const { socket } = useSocket();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [items, setItems] = useState([]);
@@ -45,6 +47,10 @@ export default function Notifications() {
               try {
                 await notificationAPI.markAllAsRead();
                 await load();
+                // Emit event to update header notification count
+                if (socket) {
+                  socket.emit('notification_read');
+                }
               } catch (e) {
                 setError(e?.message || 'Failed to update notifications');
               }
@@ -114,6 +120,10 @@ export default function Notifications() {
                       try {
                         await notificationAPI.markNotificationAsRead(n._id);
                         await load();
+                        // Emit event to update header notification count
+                        if (socket) {
+                          socket.emit('notification_read');
+                        }
                       } catch (e) {
                         setError(e?.message || 'Failed to update');
                       }

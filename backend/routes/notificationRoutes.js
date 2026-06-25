@@ -12,8 +12,8 @@ const router = express.Router();
 
 router.get('/', protect, getNotifications);
 router.get('/unread-count', protect, getUnreadCount);
+router.put('/mark-all/read', protect, markAllAsRead); // Must come before /:id/read
 router.put('/:id/read', protect, markNotificationAsRead);
-router.put('/mark-all/read', protect, markAllAsRead);
 router.delete('/:id', protect, deleteNotification);
 
 export default router;

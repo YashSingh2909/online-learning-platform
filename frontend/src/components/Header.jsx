@@ -1,12 +1,16 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { notificationAPI } from '../api/apiService';
+import { useSocket } from '../context/SocketContext';
 
 export default function Header() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const socket = useSocket();
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   const dropdownRef = useRef(null);
 
   useEffect(() => {
@@ -22,6 +26,47 @@ export default function Header() {
   useEffect(() => {
     setDropdownOpen(false);
   }, [location]);
+
+  // Fetch unread notification count
+  const fetchUnreadCount = useCallback(async () => {
+    if (!user) return;
+    try {
+      const res = await notificationAPI.getUnreadCount();
+      setUnreadCount(res.data.data?.unreadCount || 0);
+    } catch (e) {
+      console.error('Failed to fetch unread count:', e);
+    }
+  }, [user]);
+
+  // Initial fetch and socket listeners
+  useEffect(() => {
+    fetchUnreadCount();
+
+    if (!socket) return;
+
+    const handleNewNotification = () => {
+      fetchUnreadCount();
+    };
+
+    const handleNotificationRead = () => {
+      fetchUnreadCount();
+    };
+
+    socket.on('new_notification', handleNewNotification);
+    socket.on('notification_read', handleNotificationRead);
+
+    return () => {
+      socket.off('new_notification', handleNewNotification);
+      socket.off('notification_read', handleNotificationRead);
+    };
+  }, [socket, fetchUnreadCount]);
+
+  // Refresh unread count when navigating to notifications page
+  useEffect(() => {
+    if (location.pathname === '/notifications') {
+      fetchUnreadCount();
+    }
+  }, [location.pathname, fetchUnreadCount]);
 
   const handleLogout = () => {
     logout();
@@ -76,11 +121,30 @@ export default function Header() {
               </svg>
               Assignments
             </Link>
-            <Link to="/notifications" className={`nav-link ${location.pathname === '/notifications' ? 'active' : ''}`}>
+            <Link to="/notifications" className={`nav-link ${location.pathname === '/notifications' ? 'active' : ''}`} style={{ position: 'relative' }}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
               </svg>
               Notifications
+              {unreadCount > 0 && (
+                <span style={{
+                  position: 'absolute',
+                  top: '-5px',
+                  right: '-5px',
+                  background: '#ef4444',
+                  color: 'white',
+                  borderRadius: '50%',
+                  width: '18px',
+                  height: '18px',
+                  fontSize: '11px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontWeight: 'bold'
+                }}>
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
             </Link>
             <Link to="/certificates" className={`nav-link ${location.pathname === '/certificates' ? 'active' : ''}`}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -207,11 +271,30 @@ export default function Header() {
             </svg>
             Assignments
           </Link>
-          <Link to="/notifications" className={`nav-link ${location.pathname === '/notifications' ? 'active' : ''}`}>
+          <Link to="/notifications" className={`nav-link ${location.pathname === '/notifications' ? 'active' : ''}`} style={{ position: 'relative' }}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
             </svg>
             Notifications
+            {unreadCount > 0 && (
+              <span style={{
+                position: 'absolute',
+                top: '-5px',
+                right: '-5px',
+                background: '#ef4444',
+                color: 'white',
+                borderRadius: '50%',
+                width: '18px',
+                height: '18px',
+                fontSize: '11px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontWeight: 'bold'
+              }}>
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </span>
+            )}
           </Link>
           <Link to="/certificates" className={`nav-link ${location.pathname === '/certificates' ? 'active' : ''}`}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
