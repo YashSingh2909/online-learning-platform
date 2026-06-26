@@ -1,65 +1,13 @@
 import express from 'express';
 import multer from 'multer';
-import path from 'path';
-import crypto from 'crypto';
-import fs from 'fs/promises';
 
 import { protect } from '../middleware/auth.js';
+import { cloudinaryUploadStream } from '../config/cloudinary.js';
 
 const router = express.Router();
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'uploads');
-  },
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname || '');
-    const base = path.basename(file.originalname || 'upload', ext);
-    const safeBase = base.replace(/[^a-zA-Z0-9_-]/g, '');
-    const unique = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
-    cb(null, `${safeBase || 'file'}-${unique}${ext}`);
-  },
-});
-
-const makeUrl = (filename) => {
-  const baseUrl = process.env.BACKEND_URL || `http://localhost:${process.env.PORT || 5000}`;
-  return `${baseUrl}/uploads/${filename}`;
-};
-
-const hasCloudinaryConfig = () =>
-  process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET;
-
-const uploadToCloudinary = async (file, folder, resourceType = 'auto') => {
-  if (!hasCloudinaryConfig()) return null;
-
-  const timestamp = Math.floor(Date.now() / 1000);
-  const paramsToSign = `folder=${folder}&timestamp=${timestamp}${process.env.CLOUDINARY_API_SECRET}`;
-  const signature = crypto.createHash('sha1').update(paramsToSign).digest('hex');
-  const buffer = await fs.readFile(file.path);
-  const formData = new FormData();
-  formData.append('file', new Blob([buffer], { type: file.mimetype }), file.originalname);
-  formData.append('api_key', process.env.CLOUDINARY_API_KEY);
-  formData.append('timestamp', String(timestamp));
-  formData.append('signature', signature);
-  formData.append('folder', folder);
-
-  const url = `https://api.cloudinary.com/v1_1/${process.env.CLOUDINARY_CLOUD_NAME}/${resourceType}/upload`;
-  const response = await fetch(url, { method: 'POST', body: formData });
-  const data = await response.json();
-  if (!response.ok) {
-    throw new Error(data?.error?.message || 'Cloudinary upload failed');
-  }
-
-  return data.secure_url;
-};
-
-const uploadUrl = async (file, folder, resourceType = 'auto') => {
-  const cloudinaryUrl = await uploadToCloudinary(file, folder, resourceType);
-  return cloudinaryUrl || makeUrl(file.filename);
-};
-
 const uploadImages = multer({
-  storage,
+  storage: multer.memoryStorage(),
   fileFilter: (req, file, cb) => {
     const isImage = /^image\//.test(file.mimetype);
     if (!isImage) return cb(new Error('Only image files are allowed'));
@@ -69,7 +17,7 @@ const uploadImages = multer({
 });
 
 const uploadVideos = multer({
-  storage,
+  storage: multer.memoryStorage(),
   fileFilter: (req, file, cb) => {
     const isVideo = /^video\//.test(file.mimetype);
     if (!isVideo) return cb(new Error('Only video files are allowed'));
@@ -79,7 +27,7 @@ const uploadVideos = multer({
 });
 
 const uploadResources = multer({
-  storage,
+  storage: multer.memoryStorage(),
   fileFilter: (req, file, cb) => {
     const allowedMimes = [
       // documents
@@ -104,6 +52,24 @@ const uploadResources = multer({
   },
   limits: { fileSize: 100 * 1024 * 1024 }, // 100MB
 });
+
+const uploadUrl = async (file, folder, resourceType = 'auto') => {
+  const result = await cloudinaryUploadStream({
+    buffer: file.buffer,
+    mimetype: file.mimetype,
+    folder,
+    resourceType,
+  });
+
+  if (!result?.secure_url) {
+    // Cloudinary isn't configured or upload failed.
+    // Preserve legacy contract by failing explicitly.
+    throw new Error('Cloudinary upload failed');
+  }
+
+  return result.secure_url;
+};
+
 
 // Upload course thumbnail (image only)
 router.post('/course-thumbnail', protect, uploadImages.single('thumbnail'), async (req, res) => {
@@ -148,5 +114,6 @@ router.post('/assignment-resources', protect, uploadResources.array('resources',
 });
 
 export default router;
+
 
 
