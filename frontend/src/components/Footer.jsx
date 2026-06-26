@@ -12,6 +12,7 @@ export default function Footer() {
         }}
       >
         <div
+          className="footer-grid"
           style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(5, minmax(0, 1fr))',
@@ -137,9 +138,41 @@ export default function Footer() {
 
         <style>
           {`
-            @media (max-width: 1024px) {
+            /* Mobile: 1 column */
+            @media (max-width: 479px) {
+              footer .footer-grid {
+                grid-template-columns: 1fr !important;
+                gap: 1.5rem !important;
+              }
+            }
+
+            /* Small Mobile/Tablet: 2 columns */
+            @media (min-width: 480px) and (max-width: 767px) {
               footer .footer-grid {
                 grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+                gap: 1.75rem !important;
+              }
+            }
+
+            /* Tablet: 3 columns */
+            @media (min-width: 768px) and (max-width: 1023px) {
+              footer .footer-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+                gap: 2rem !important;
+              }
+            }
+
+            /* Small Desktop: 4 columns */
+            @media (min-width: 1024px) and (max-width: 1279px) {
+              footer .footer-grid {
+                grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+              }
+            }
+
+            /* Large Desktop: 5 columns (default) */
+            @media (min-width: 1280px) {
+              footer .footer-grid {
+                grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
               }
             }
           `}
